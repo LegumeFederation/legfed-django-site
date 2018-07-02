@@ -1,0 +1,146 @@
+body {
+    background-color: #509050;
+}
+
+label {
+    display: inline;
+}
+
+h3 {
+    padding: 10px 0;
+    margin: 0;
+}
+
+footer.page {
+    border-top: 2px solid #509050;
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding-top: 5px;
+    padding-bottom: 0;
+}
+
+.jumbotron {
+    border: 1px solid gray;
+    background-color: #cdc;
+    padding: 0 0;
+    margin: 0 0 10px 0;
+}
+
+.container {
+    background-color: white;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 8px;
+}
+
+.navbar {
+    background: linear-gradient(#9fb39f, #509050);
+}
+
+.navbar-brand {
+    padding: 0 20px 0 0;
+}
+
+.navbar-default .navbar-nav li a {
+    font-weight: bold;
+    color: black;
+}
+
+.navbar-default .navbar-nav .active a {
+    background: linear-gradient(#0fa30f, black);
+    color: white;
+}
+
+.navbar-title {
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    float: right;
+    padding-top: 5px;
+}
+
+.navbar-title a {
+    color: white;
+}
+
+.column .filer_image {
+	padding: 5px;
+}
+
+.forms .description {
+    font-style: italic;
+    padding-bottom: 10px;
+}
+
+.poll {
+    border: 2px solid purple;
+    padding: 20px;
+}
+
+.poll-question  {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.poll-choices {
+    width: 330px;
+    border: 2px solid purple;
+    padding: 10px;
+}
+
+.poll-choices hr {
+    height: 2px;
+    border: 0;
+    background-color: purple;
+}
+
+table.poll-results {
+    width: 330px;
+    border: 2px solid purple;
+}
+
+table.poll-results td {
+    padding: 5px;
+    font-weight: bold;
+}
+
+.poll-again {
+    font-weight: bold;
+    font-style: italic;
+    padding: 20px;
+}
+
+.poll-error {
+    font-style: italic;
+    color: darkred;
+    padding: 5px;
+}
+
+.plugin-blog {
+    padding: 0 10px;
+    background-color: #cdc;
+    border: 1px solid gray;
+}
+
+article.post-item {
+    padding: 5px 0;
+}
+
+.blog-latest-entries {
+    padding-bottom: 10px;
+}
+
+.blog-latest-entries h3 {
+    padding: 5px 0;
+    margin: 0;
+}
+
+.blog-latest-entries p {
+    padding: 0;
+    margin: 0;
+}
+
+ul.post-detail {
+    margin: 0;
+}
+

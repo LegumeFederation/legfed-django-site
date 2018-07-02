@@ -1,0 +1,49 @@
+{% load cms_tags staticfiles sekizai_tags menu_tags %}
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}This is my new project home page{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/base.css" media="all" />
+    <link rel="stylesheet" type="text/css" href="/static/css/print.css" media="print" />
+    {% render_block "css" %}
+    {% load snippet_tags %}
+    <style>
+{% snippet_fragment 'css' %}
+    </style>
+  </head>
+  <body>
+    {% cms_toolbar %}
+    <div class="container">
+      <div class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+	  <a class="navbar-brand" href="/"><img src="/static/images/LegFedSiteLogo-68x65.png" alt="LegFed site logo"/></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            {% show_menu 0 1 100 100 "menu.html" %}
+          </ul>
+	  <div class="navbar-title">
+	    <a href="/">Legume Federation</a>
+	  </div>
+        </div>
+      </div>
+      {% block content %}{% endblock content %}
+      <footer class="page">
+        {% static_placeholder 'footer' %}
+      </footer>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    {% render_block "js" %}
+  </body>
+</html>

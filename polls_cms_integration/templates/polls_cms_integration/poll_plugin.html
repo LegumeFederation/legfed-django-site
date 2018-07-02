@@ -1,0 +1,14 @@
+<div class="poll-question">{{ instance.poll.question }}</div>
+
+<div class="poll-choices">
+  <form action="{% url 'polls:vote' instance.poll.id %}" method="post">
+    {% csrf_token %}
+    {% for choice in instance.poll.choice_set.all %}
+    <input type="radio" name="choice" value="{{ choice.id }}">
+    <label>{{ choice.choice_text }}</label>
+    <br/>
+    {% endfor %}
+    <hr/>
+    <input type="submit" value="Vote!" />
+  </form>
+</div>

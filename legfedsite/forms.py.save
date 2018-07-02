@@ -1,0 +1,10 @@
+# legfedsite/forms.py
+
+from django import forms
+from cmsplugin_form_handler.forms import FormPluginFormMixin
+
+class GeneSearchForm(FormPluginFormMixin, forms.Form):
+    # everything else is your normal form.
+    gene_id = forms.CharField(required=True)
+
+

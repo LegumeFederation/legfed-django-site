@@ -1,0 +1,18 @@
+{% extends 'polls/base.html' %}
+
+{% block polls_content %}
+<div class="poll-question">{{ poll.question }}</div>
+
+<table class="poll-results">
+  {% for choice in poll.choice_set.all %}
+  <tr>
+    <td>{{ choice.choice_text }}</td>
+    <td>{{ choice.votes }} vote{{ choice.votes|pluralize }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+<div class="poll-again">
+  <a href="{% url 'polls:detail' poll.id %}">Vote again?</a>
+</div>
+{% endblock %}

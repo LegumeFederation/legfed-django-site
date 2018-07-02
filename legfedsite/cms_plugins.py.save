@@ -1,0 +1,41 @@
+# legfedsite/cms_plugins.py
+
+from cmsplugin_form_handler.cms_plugins import FormPluginBase
+
+class GeneSearchPlugin(FormPluginBase):
+    # Use your normal CMSPlugin attributes...
+    render_template = 'plugins/gene_search_plugin.html'
+    # Note that ``cache = False`` will automatically be set
+
+    # These should be overridden in sub-classes
+    form_class = GeneSearchForm  # Or, see: get_form_class()
+    success_url = '/static/gene_search_success.html'  # Or, see: get_success_url()
+
+    def render(self, context, instance, placeholder):
+        context = super(GeneSearchPlugin, self).render(context, instance, placeholder)
+
+        # Do your normal thing here
+        # ...
+
+        return context
+
+    def get_form_class(self, request, instance):
+        # Use this method to programmatically determine the form_class.
+        # This is what this method does by default:
+        return self.form_class
+
+    def get_form_kwargs(self, request, instance):
+        # Use this method to programmatically add additional parameters to
+        # your form. By default, this should return an empty dict.
+        return {}
+
+    def get_success_url(self, request, instance):
+        # Use this method to programmatically determine the success_url.
+        # This is what this method does by default:
+        return self.success_url
+
+    def form_valid(self, request, instance, form):
+        # Optionally do something with the rendered form here
+        # This is what this method does by default:
+        form.save()
+
