@@ -18,12 +18,12 @@ urlpatterns = [
 ]
 
 urlpatterns += i18n_patterns(
+    url(r'^polls/', include('polls.urls')),
+    url(r'^genesearch/', include('genesearch.urls')),
     url(r'^admin/', include(admin.site.urls)),  # NOQA
     url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
-    url(r'^', include('djangocms_forms.urls')),
     url(r'^plugin_forms/', include('cmsplugin_form_handler.urls', namespace='cmsplugin_form_handler')),
-    url(r'^polls/', include('polls.urls', namespace='polls')),
-
+    url(r'^', include('djangocms_forms.urls')),
     url(r'^', include('cms.urls')),
 )
 

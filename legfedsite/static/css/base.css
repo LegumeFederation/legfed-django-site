@@ -6,6 +6,10 @@ label {
     display: inline;
 }
 
+h1 {}
+
+h2 {}
+
 h3 {
     padding: 10px 0;
     margin: 0;
@@ -23,18 +27,20 @@ footer.page {
     border: 1px solid gray;
     background-color: #cdc;
     padding: 0 0;
-    margin: 0 0 10px 0;
+    margin: 18px 0 0 0;
 }
 
 .container {
     background-color: white;
     margin-top: 5px;
     margin-bottom: 5px;
-    padding: 8px;
+    padding: 10px;
+    border: 2px solid darkgreen;
 }
 
 .navbar {
     background: linear-gradient(#9fb39f, #509050);
+    margin: -8px -8px 0 -8px;
 }
 
 .navbar-brand {
@@ -63,8 +69,16 @@ footer.page {
     color: white;
 }
 
+ul.nav {
+    font-size: 18px;
+}
+
+
+.column {
+    padding: 0 5px;
+}
 .column .filer_image {
-	padding: 5px;
+    padding: 5px 5px;
 }
 
 .forms .description {
@@ -80,6 +94,7 @@ footer.page {
 .poll-question  {
     font-size: 24px;
     font-weight: bold;
+    margin: 10px 0;
 }
 
 .poll-choices {
@@ -122,6 +137,10 @@ table.poll-results td {
     border: 1px solid gray;
 }
 
+.plugin-blog h3 {
+    font-size: 18px;
+}
+
 article.post-item {
     padding: 5px 0;
 }
@@ -142,5 +161,30 @@ article.post-item {
 
 ul.post-detail {
     margin: 0;
+}
+
+.field-wrapper label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+.button-wrapper {
+    margin-top: 10px;
+}
+
+input#name, input#email {
+    width: 400px;
+}
+
+textarea#question {
+    width: 600px;
+    height: 100px;
+}
+
+h3.title {
+    font-size: 36px;
+    margin-top: 20px;
+    
 }
 
