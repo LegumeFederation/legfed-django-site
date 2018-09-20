@@ -1,5 +1,5 @@
 # legfed-django-site
-Django CMS LegumeFederation.org
+Django CMS for www.LegumeFederation.org
 
 Fire up the dev server with:
 ```
