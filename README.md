@@ -1,4 +1,4 @@
-# legfed-site
+# legfed-django-site
 Django CMS LegumeFederation.org
 
 Fire up the dev server with:
