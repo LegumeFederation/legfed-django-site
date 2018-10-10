@@ -28,7 +28,7 @@ SECRET_KEY = 'oq=$uz2u_xzlsi%o5-*f4#h2q=$2zkb8-m^w6aqm0g214tys!2'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','legfedorg','fisher','fisher.ncgr.org']
+ALLOWED_HOSTS = ['127.0.0.1','localhost','legfeddev','fisher','fisher.ncgr.org']
 
 
 # Application definition
@@ -148,11 +148,13 @@ INSTALLED_APPS = (
     'legfedsite',
     'polls',
     'polls_cms_integration',
+    'species_mgr.apps.SpeciesMgrConfig',
+    'resource_mgr.apps.ResourceMgrConfig',
 )
 
 LANGUAGES = (
     ## Customize this
-    ('en', gettext('en')),
+    ('en', gettext('English')),
 )
 
 CMS_LANGUAGES = {
@@ -167,7 +169,7 @@ CMS_LANGUAGES = {
             'public': True,
             'code': 'en',
             'hide_untranslated': False,
-            'name': gettext('en'),
+            'name': gettext('English'),
             'redirect_on_fallback': True,
         },
     ],
@@ -190,7 +192,7 @@ DATABASES = {
         'CONN_MAX_AGE': 0,
         'ENGINE': 'django.db.backends.sqlite3',
         'HOST': 'localhost',
-        'NAME': '/home/shokin/legfed-site/project.db',
+        'NAME': '/home/svengato/legfed-django-site/project.db',
         'PASSWORD': '',
         'PORT': '',
         'USER': ''
