@@ -1,0 +1,32 @@
+{# base.html provides the header and footer #}
+{% extends 'base.html' %}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" media="all" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/print.css' %}" media="print" />
+
+{% block content %}
+
+<h1>Past Meetings</h1>
+
+<ul>
+{% for announcement in past_announcements_list reversed %}
+    <li>
+    {% if announcement.start_date.year == announcement.end_date.year and announcement.start_date.month == announcement.end_date.month and announcement.start_date.day == announcement.end_date.day %}
+        <b>{{ announcement.end_date|date:"j M Y" }}</b>:
+    {% elif announcement.start_date.year == announcement.end_date.year and announcement.start_date.month == announcement.end_date.month %}
+        <b>{{ announcement.start_date|date:"j" }}-{{ announcement.end_date|date:"j M Y" }}</b>:
+    {% elif announcement.start_date.year == announcement.end_date.year %}
+        <b>{{ announcement.start_date|date:"j M" }}-{{ announcement.end_date|date:"j M Y" }}</b>:
+    {% else %}
+        <b>{{ announcement.start_date|date:"j M Y" }}-{{ announcement.end_date|date:"j M Y" }}</b>:
+    {% endif %}
+    <a href="{{ announcement.url }}">{{ announcement.description }}</a>, {{ announcement.location }}
+    </li>
+{% empty %}
+    <p>No past meetings.</p>
+{% endfor %}
+</ul>
+
+{% endblock %}
+

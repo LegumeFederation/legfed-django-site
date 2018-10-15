@@ -150,6 +150,7 @@ INSTALLED_APPS = (
     'polls_cms_integration',
     'species_mgr.apps.SpeciesMgrConfig',
     'resource_mgr.apps.ResourceMgrConfig',
+    'announcements.apps.AnnouncementsConfig',
 )
 
 LANGUAGES = (
