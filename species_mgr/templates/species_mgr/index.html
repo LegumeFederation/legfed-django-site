@@ -1,17 +1,16 @@
-{# base.html provides the header and footer #}
 {% extends 'base.html' %}
-{# extends 'species_mgr/base.html' #}
 
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" media="all" />
-<link rel="stylesheet" type="text/css" href="{% static 'css/print.css' %}" media="print" />
 
-{# block species_mgr_content #}
+{% block title %}
+LegFed: Species
+{% endblock %}
+
 {% block content %}
 
 <h1>Species</h1>
-<!--h3>for Legume Hipsters</h3-->
-<p>This page lists resources for each species. If you would like to suggest a resource, please e-mail us at <strong>legumefederation at gmail dot com</strong>.</p>
+
+<p>Please add your species and resources!</p>
 
 <table>
 {% for species in latest_species_and_urls_list %}
@@ -48,3 +47,4 @@
 <table>
 
 {% endblock %}
+
