@@ -1,11 +1,12 @@
-{# base.html provides the header and footer #}
-{% extends 'base.html' %}
+{% extends 'announcements/base.html' %}
 
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" media="all" />
-<link rel="stylesheet" type="text/css" href="{% static 'css/print.css' %}" media="print" />
 
-{% block content %}
+{% block title %}
+LegFed: Past Meetings
+{% endblock %}
+
+{% block announcements_content %}
 
 <h1>Past Meetings</h1>
 
