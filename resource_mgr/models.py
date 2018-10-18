@@ -27,6 +27,6 @@ class Resource(models.Model) :
         return text
 
     def __str__(self) :
-        ss = ', '.join(sp.to_gggss() for sp in self.species.all())
+        ss = ', '.join(sp.get_abbreviation() for sp in self.species.all())
         return self.get_text() + ' (%s)'%(ss)
 
