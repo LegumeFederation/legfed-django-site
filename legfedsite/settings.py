@@ -151,6 +151,7 @@ INSTALLED_APPS = (
     'species_mgr.apps.SpeciesMgrConfig',
     'resource_mgr.apps.ResourceMgrConfig',
     'announcements.apps.AnnouncementsConfig',
+    'announcements_cms_integration',
 )
 
 LANGUAGES = (

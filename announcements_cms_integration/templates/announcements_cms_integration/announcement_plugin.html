@@ -1,0 +1,23 @@
+<h3>ANNOUNCEMENTS</h3>
+
+<ul>
+{% for announcement in latest_announcements_list %}
+    <li>
+    {% if announcement.start_date.year == announcement.end_date.year and announcement.start_date.month == announcement.end_date.month and announcement.start_date.day == announcement.end_date.day %}
+        <b>{{ announcement.end_date|date:"j M Y" }}</b>:
+    {% elif announcement.start_date.year == announcement.end_date.year and announcement.start_date.month == announcement.end_date.month %}
+        <b>{{ announcement.start_date|date:"j" }}-{{ announcement.end_date|date:"j M Y" }}</b>:
+    {% elif announcement.start_date.year == announcement.end_date.year %}
+        <b>{{ announcement.start_date|date:"j M" }}-{{ announcement.end_date|date:"j M Y" }}</b>:
+    {% else %}
+        <b>{{ announcement.start_date|date:"j M Y" }}-{{ announcement.end_date|date:"j M Y" }}</b>:
+    {% endif %}
+    <a href="{{ announcement.url }}">{{ announcement.description }}</a>, {{ announcement.location }}
+    </li>
+{% empty %}
+    <p>No meetings currently scheduled.</p>
+{% endfor %}
+</ul>
+
+<p><a href="{% url 'announcements:past' %}">Past Meetings</a></p>
+
