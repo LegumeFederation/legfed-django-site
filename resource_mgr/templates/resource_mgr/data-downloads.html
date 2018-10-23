@@ -1,0 +1,10 @@
+<ul>
+{% for dd in data_downloads_list %}
+    <li>
+    <a href="{{ dd.url }}">{{ dd.text }}</a>
+    </li>
+{% empty %}
+    <p>None currently available.</p>
+{% endfor %}
+</ul>
+

@@ -1,0 +1,19 @@
+{% extends 'resource_mgr/base.html' %}
+
+{% load static %}
+
+{% block title %}
+LegFed: Data Downloads
+{% endblock %}
+
+{% block resource_mgr_content %}
+
+<h1>Data Store</h1>
+
+<p>The Legume Federation data are stored in the <b><a href="http://datacommons.cyverse.org/browse/iplant/home/shared/Legume_Federation">Legume Federation Data Store at CyVerse</a></b>. Please add your data!</p>
+
+<h3>Other data downloads hosted by Legume Federation members</h3>
+{% include 'resource_mgr/data-downloads.html' %}
+
+{% endblock %}
+

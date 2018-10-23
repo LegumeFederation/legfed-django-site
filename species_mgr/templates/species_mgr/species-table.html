@@ -1,0 +1,34 @@
+<table>
+{% for species in latest_species_and_urls_list %}
+    <tr>
+    <td width=100px height=100px style="padding: 10px; vertical-align: text-top">
+    {% if species.0.icon %}
+        <img class="filer_image" src="{{ MEDIA_URL }}/{{ species.0.icon.file }}" width=100 height=100 style="object-fit: cover">
+    {% endif %}
+    </td><td style="padding: 5px">
+    <p><b><i>{{ species.0.genus_name }} {{ species.0.species_name }}</i> ({{ species.0.common_name }})</b></p>
+    {# unordered list of resources, by organization #}
+    <ul>
+    {% if species.1 %}
+        {% regroup species.1 by org as resources_by_org %}
+        {% for resources in resources_by_org %}
+            <li>
+            {% for resource in resources.list %}
+                {% if not forloop.first %}
+                    &nbsp;|&nbsp;
+                {% endif %}
+                <a href="{{ resource.url }}">{{ resource.get_text }}</a>
+            {% endfor %}
+            </li>
+        {% endfor %}
+    {% else %}
+        <li>No resources are available.</li>
+    {% endif %}
+    </ul>
+    </td>
+    </tr>
+{% empty %}
+    <p>No species are available.</p>
+{% endfor %}
+<table>
+
