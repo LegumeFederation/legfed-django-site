@@ -149,7 +149,9 @@ INSTALLED_APPS = (
     'polls',
     'polls_cms_integration',
     'species_mgr.apps.SpeciesMgrConfig',
+    'species_cms_integration',
     'resource_mgr.apps.ResourceMgrConfig',
+    'resources_cms_integration',
     'announcements.apps.AnnouncementsConfig',
     'announcements_cms_integration',
 )
