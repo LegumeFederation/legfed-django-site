@@ -12,12 +12,12 @@ class Organization(models.Model) :
 
 class Resource(models.Model) :
     org = models.ForeignKey(Organization, verbose_name = 'organization that provides it', on_delete = models.CASCADE)
-    species = models.ManyToManyField(Species, verbose_name = 'its related species', blank = True)
-    text = models.CharField('Text (if different from Organization)', max_length = 256, null = True, blank = True)
     url = models.CharField(max_length = 256)
+    text = models.CharField('Text (if different from Organization)', max_length = 256, null = True, blank = True)
+    hints = models.CharField(max_length = 64, null = True, blank = True)
+    species = models.ManyToManyField(Species, verbose_name = 'its related species', blank = True)
     is_data = models.BooleanField('Data Download', default = False)
     is_tour = models.BooleanField('Tour', default = False)
-    tour_hints = models.CharField(max_length = 64, null = True, blank = True)
 
     class Meta :
         # order by org in order to group by org
@@ -31,7 +31,7 @@ class Resource(models.Model) :
 
     def clean(self):
         if (not self.is_tour) :
-            self.tour_hints = None
+            self.hints = None
 
     def __str__(self) :
         text = self.get_text()

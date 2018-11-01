@@ -2,8 +2,8 @@
 {% for tour in tours_list %}
     <li>
     <a href="{{ tour.url }}">{{ tour.get_text }}</a>
-    {% if tour.tour_hints %}
-        ({{ tour.tour_hints }})
+    {% if tour.hints %}
+        ({{ tour.hints }})
     {% endif %}
     </li>
 {% empty %}
