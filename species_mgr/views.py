@@ -3,7 +3,7 @@
 from django.shortcuts import render
 
 from .models import Species
-from resource_mgr.models import Resource, Organization 
+from resource_mgr.models import Resource
 
 # Create your views here.
 def index(request) :
