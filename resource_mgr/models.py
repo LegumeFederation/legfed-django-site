@@ -1,8 +1,12 @@
 from django.db import models
+from filer.fields.image import FilerImageField
 from species_mgr.models import Species
 
 class Organization(models.Model) :
     name = models.CharField(max_length = 128)
+    url = models.CharField(max_length = 256, null = True, blank = True)
+    contact_email = models.CharField(max_length = 64, null = True, blank = True)
+    icon = FilerImageField(null = True, blank = True, related_name = 'Organization_icons')
 
     class Meta :
         ordering = [ 'name' ]

@@ -2,7 +2,7 @@
 
 from django.shortcuts import render
 
-from .models import Resource
+from .models import Resource, Organization
 
 # Create your views here.
 def index(request) :
@@ -22,4 +22,11 @@ def tours(request) :
         'tours_list': tours_list,
     }
     return render(request, 'resource_mgr/tours.html', context)
+
+def organizations(request) :
+    orgs_list = Organization.objects.all()
+    context = {
+        'orgs_list': orgs_list,
+    }
+    return render(request, 'resource_mgr/organizations.html', context)
 

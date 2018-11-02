@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+LegFed: Organizations
+{% endblock %}
+
+{% block content %}
+
+<h1>Organizations</h1>
+
+<table>
+{% for org in orgs_list %}
+    <tr>
+    <td width=100px height=100px style="padding: 10px; vertical-align: text-top">
+    {% if org.icon %}
+        <img class="filer_image" src="{{ MEDIA_URL }}/{{ org.icon.file }}" width=100 height=100>
+    {% endif %}
+    </td><td style="padding: 5px">
+    <p style="font-size: 24px; color: darkgreen">
+    {% if org.url %}
+        <a href="{{ org.url }}"><b>{{ org.name }}</b></a>
+    {% else %}
+        <b>{{ org.name }}</b>
+    {% endif %}
+    </p>
+    {% if org.contact_email %}
+        <p>Contact e-mail: <a href="mailto:{{ org.contact_email }}">{{ org.contact_email }}</a></p>
+    {% endif %}
+    </td>
+    </tr>
+{% empty %}
+    <p>No organizations are available.</p>
+{% endfor %}
+<table>
+
+{% endblock %}
+
