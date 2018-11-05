@@ -3,6 +3,7 @@
 from django.shortcuts import render
 
 from .models import Resource, Organization
+from .models import DataDownload, Tour
 
 # Create your views here.
 def index(request) :
@@ -10,14 +11,14 @@ def index(request) :
     return render(request, 'resource_mgr/index.html', context)
 
 def data(request) :
-    data_downloads_list = Resource.objects.filter(is_data = True)
+    data_downloads_list = DataDownload.objects.all()
     context = {
         'data_downloads_list': data_downloads_list,
     }
     return render(request, 'resource_mgr/data.html', context)
 
 def tours(request) :
-    tours_list = Resource.objects.filter(is_tour = True)
+    tours_list = Tour.objects.all()
     context = {
         'tours_list': tours_list,
     }

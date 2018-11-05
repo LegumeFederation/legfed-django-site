@@ -4,18 +4,18 @@ from django.db import models
 
 # Create your models here.
 from cms.models import CMSPlugin
-from resource_mgr.models import Resource
+from resource_mgr.models import DataDownload, Tour
 
 class DataDownloadsPluginModel(CMSPlugin) :
     def get_data_downloads() :
-        return Resource.objects.filter(is_data = True)
+        return DataDownload.objects.all()
 
     def __str__(self) :
         return 'Data Downloads go here'
 
 class ToursPluginModel(CMSPlugin) :
     def get_tours() :
-        return Resource.objects.filter(is_tour = True)
+        return Tour.objects.all()
 
     def __str__(self) :
         return 'Tours go here'

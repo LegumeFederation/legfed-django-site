@@ -3,7 +3,7 @@
     <li>
     <a href="{{ tour.url }}">{{ tour.get_text }}</a>
     {% if tour.hints %}
-        ({{ tour.hints }})
+        {{ tour.hints }}
     {% endif %}
     </li>
 {% empty %}
