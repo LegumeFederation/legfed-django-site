@@ -32,7 +32,12 @@ class Resource(models.Model) :
         return text
 
     def __str__(self) :
-        text = self.get_text()
+        if (hasattr(self, 'datadownload')) :
+            text = '[DATA DOWNLOAD] ' + self.get_text()
+        elif (hasattr(self, 'tour')) :
+            text = '[TOUR] ' + self.get_text()
+        else :
+            text = self.get_text()
 
         if (not(self.species is None or len(self.species.all()) == 0)) :
             ss = ', '.join(sp.get_abbreviation() for sp in self.species.all())
@@ -43,6 +48,12 @@ class Resource(models.Model) :
 class DataDownload(Resource) :
     species = None
 
+    def __str__(self) :
+        return self.get_text()
+
 class Tour(Resource) :
     species = None
+
+    def __str__(self) :
+        return self.get_text()
 
