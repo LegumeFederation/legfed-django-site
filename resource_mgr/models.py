@@ -2,6 +2,8 @@ from django.db import models
 from filer.fields.image import FilerImageField
 from species_mgr.models import Species
 
+# ----------------------------------------------------------
+
 class Organization(models.Model) :
     name = models.CharField(max_length = 128)
     url = models.CharField(max_length = 256, null = True, blank = True)
@@ -13,6 +15,8 @@ class Organization(models.Model) :
 
     def __str__(self) :
         return self.name
+
+# ----------------------------------------------------------
 
 class Resource(models.Model) :
     org = models.ForeignKey(Organization, verbose_name = 'organization that provides it', on_delete = models.CASCADE)
@@ -34,6 +38,8 @@ class Resource(models.Model) :
     def __str__(self) :
         if (hasattr(self, 'datadownload')) :
             text = '[DATA DOWNLOAD] ' + self.get_text()
+        elif (hasattr(self, 'tool')) :
+            text = '[TOOL] ' + self.get_text()
         elif (hasattr(self, 'tour')) :
             text = '[TOUR] ' + self.get_text()
         else :
@@ -44,6 +50,8 @@ class Resource(models.Model) :
             text += ' (%s)'%(ss)
 
         return text
+
+# ----------------------------------------------------------
 
 class DataDownload(Resource) :
     species = None
@@ -56,4 +64,45 @@ class Tour(Resource) :
 
     def __str__(self) :
         return self.get_text()
+
+# ----------------------------------------------------------
+
+class ToolDataType(models.Model) :
+    name = models.CharField(max_length = 255)
+
+    class Meta :
+        ordering = [ 'name' ]
+
+    def __str__(self) :
+        return self.name
+
+class ToolAnalysisType(models.Model) :
+    name = models.CharField(max_length = 255)
+
+    class Meta :
+        ordering = [ 'name' ]
+
+    def __str__(self) :
+        return self.name
+
+class Tool(Resource) :
+    species = None
+    input_data_type = models.ForeignKey(ToolDataType, related_name = 'tool_input_data_type', on_delete = models.CASCADE)
+    output_data_type = models.ForeignKey(ToolDataType, related_name = 'tool_output_data_type', on_delete = models.CASCADE)
+    analysis_type = models.ForeignKey(ToolAnalysisType, on_delete = models.CASCADE)
+
+    class Meta :
+        # for now, order by analysis_type in order to group by analysis_type
+        ordering = [ 'analysis_type', 'text' ]
+
+    def get_text(self) :
+        text = self.text
+        if (text is None) :
+            text = self.url
+        return text
+
+    def __str__(self) :
+        return self.get_text()
+
+# ----------------------------------------------------------
 
