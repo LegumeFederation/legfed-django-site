@@ -28,7 +28,7 @@ SECRET_KEY = 'oq=$uz2u_xzlsi%o5-*f4#h2q=$2zkb8-m^w6aqm0g214tys!2'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','localhost','legfeddev','fisher','fisher.ncgr.org']
+ALLOWED_HOSTS = ['127.0.0.1','localhost','legfeddev','dev.lis.ncgr.org']
 
 
 # Application definition
