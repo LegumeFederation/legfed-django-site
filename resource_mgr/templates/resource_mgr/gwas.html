@@ -1,0 +1,165 @@
+<div style="padding: 8px; background-color: lightgreen">
+<h3>Register GWAS Data</h3>
+
+<p>
+Genus <select id="genusMenu" onchange="updateSpeciesMenu()"></select>
+Species <select id="speciesMenu" onchange="updateMetadata()"></select>
+<!--span id="metadata"></span-->
+</p>
+
+<p><button type="button" onclick="clearGwasMetadata()">Clear</button></p>
+<p>
+URL <input type="text" id="url" size=100 placeholder="http://www.trichomes.org/trichomes.gwas">
+</p>
+<p>
+Origin <input type="text" id="origin" size=10 placeholder="HAPMAP">
+Version <input type="text" id="version" size=5>
+Infraspecies <input type="text" id="infraspecies" size=10>
+</p>
+<p>
+Contact person <input type="text" id="contact" placeholder="Your Name">
+e-mail <input type="text" id="email" size=30 placeholder="someone@somewhere.org">
+</p>
+<p><button type="button" onclick="submitGwasMetadata()">Register</button></p>
+</div>
+
+<!-- ----------------------------------------------------------------------- -->
+<script>
+
+// DSCensor base URLs
+var baseUrl = "http://dev.lis.ncgr.org:50020/api/v1/";
+var baseUrlTaxa = baseUrl + "taxa-list/";
+var baseUrlMetadata = baseUrl + "nodes/labels/";
+
+document.getElementById("genusMenu").onload = updateGenusMenu();
+
+// Capitalize the first letter of the string s
+function title(s) {
+    return s[0].toUpperCase() + s.substring(1);
+}
+
+function getSelectedGenus() {
+    var genusMenu = document.getElementById("genusMenu");
+    return genusMenu.options[genusMenu.selectedIndex].value;
+}
+
+function getSelectedSpecies() {
+    var speciesMenu = document.getElementById("speciesMenu");
+    return speciesMenu.options[speciesMenu.selectedIndex].value;
+}
+
+// Populate the Genus menu from DSCensor
+function updateGenusMenu() {
+    var genusMenu = document.getElementById("genusMenu");
+
+    // Clear the genus menu
+    for (var i = genusMenu.options.length - 1; i >= 0; i--) {
+        genusMenu.options[i] = null;
+    }
+    // Populate the genus menu
+    var genusList;
+    $.getJSON(baseUrlTaxa, function(obj) {
+        //console.log(obj.data);
+        genusList = obj.data;
+        for (var i = 0; i < genusList.length; i++) {
+            var e = document.createElement("option");
+            e.textContent = title(genusList[i]);
+            e.value = genusList[i];
+            genusMenu.appendChild(e);
+        }
+        // Populate the species menu
+        updateSpeciesMenu();
+    });
+}
+
+// Populate the Species menu from DSCensor
+function updateSpeciesMenu() {
+    var speciesMenu = document.getElementById("speciesMenu");
+
+    // Clear the species menu
+    for (var i = speciesMenu.options.length - 1; i >= 0; i--) {
+        speciesMenu.options[i] = null;
+    }
+
+    // Populate the species menu
+    var speciesList;
+    $.getJSON(baseUrlTaxa + getSelectedGenus(), function(obj) {
+        //console.log(obj.data);
+        speciesList = obj.data;
+        for (var i = 0; i < speciesList.length; i++) {
+            var e = document.createElement("option");
+            e.textContent = speciesList[i];
+            e.value = speciesList[i];
+            speciesMenu.appendChild(e);
+        }
+        // Populate metadata
+        updateMetadata();
+    });
+}
+
+// Example of how to read existing metadata from DSCensor (and display them in metadataSpan)
+function updateMetadata() {
+    // Clear the metadata
+    var metadataSpan = document.getElementById("metadata");
+    if (metadataSpan == null) return
+    metadataSpan.innerHTML = "";
+
+    // Populate the metadata
+    $.getJSON(baseUrlMetadata + getSelectedGenus() + ":" + getSelectedSpecies(), function(obj) {
+        //console.log(obj.data);
+        var g = 0;
+        for (var i = 0; i < obj.data.length; i++) {
+            if (obj.data[i].filetype == "gwas") ++g;
+        }
+        metadataSpan.innerHTML = "Found " + obj.data.length + " items, of which " + g + " are GWAS data";
+    });
+}
+
+// Clear all fields
+function clearGwasMetadata() {
+    var fields = [ "url", "origin", "version", "infraspecies", "contact", "email" ];
+    for (var i = 0; i < fields.length; i++) {
+        document.getElementById(fields[i]).value = "";
+    }
+}
+
+// Validate all metadata
+function validateGwasMetadata(url, name, origin, contact, email) {
+    return (email.indexOf('@') >= 0);
+}
+
+// Do something with the GWAS metadata
+function submitGwasMetadata() {
+    var url = document.getElementById("url").value;
+    var name = url.substr(url.lastIndexOf('/') + 1);
+    var origin = document.getElementById("origin").value;
+    var version = document.getElementById("version").value;
+    var infraspecies = document.getElementById("infraspecies").value;
+    var contact = document.getElementById("contact").value;
+    var email = document.getElementById("email").value;
+
+    if (!validateGwasMetadata(url, name, origin, contact, email)) {
+        alert("Invalid metadata (...)");
+        return
+    }
+
+    var obj = {};
+    obj.data = {};
+    obj.data.filetype = "gwas";
+    obj.data.genus = getSelectedGenus();
+    obj.data.species = getSelectedSpecies();
+    obj.data.url = url;
+    obj.data.name = name;
+    obj.data.origin = origin;
+    obj.data.version = version;
+    obj.data.infraspecies = infraspecies;
+    obj.data.contact = contact;
+    obj.data.email = email;
+
+    var json = JSON.stringify(obj);
+    alert(json);
+}
+
+</script>
+<!-- ----------------------------------------------------------------------- -->
+
