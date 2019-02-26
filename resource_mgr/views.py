@@ -1,10 +1,12 @@
 #-*- coding: utf-8 -*-
 
 from django.shortcuts import render
+from django.http import HttpResponseRedirect
 
 from .models import Resource, Organization
 from .models import DataDownload, Tour, Tool
 
+import json
 import math
 
 # Create your views here.
@@ -18,6 +20,23 @@ def data(request) :
         'data_downloads_list': data_downloads_list,
     }
     return render(request, 'resource_mgr/data.html', context)
+
+def gwas(request) :
+    if request.method == 'POST' :
+        # Write the returned GWAS metadata to a file
+        dout = '/var/www/legfed-django-site/legfedsite/ds-public/'
+        obj = json.loads(request.POST.get('json'))
+        name = obj['data']['name']
+        fout = open(dout + name + '.json', 'w')
+        fout.write(request.POST.get('json'))
+        fout.write('\n')
+        fout.close()
+
+        # Done - return to the Data Store page
+        return HttpResponseRedirect("/resource_mgr/data/")
+
+    context = {}
+    return render(request, 'resource_mgr/data/gwas.html', context)
 
 def tours(request) :
     tours_list = Tour.objects.all()

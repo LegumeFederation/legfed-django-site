@@ -1,26 +1,36 @@
-<div style="padding: 8px; background-color: lightgreen">
+<div class="plugin-blog">
 <h3>Register GWAS Data</h3>
 
+<!-- For convenience we are not using HTML forms, but the form would begin here -->
 <p>
 Genus <select id="genusMenu" onchange="updateSpeciesMenu()"></select>
-Species <select id="speciesMenu" onchange="updateMetadata()"></select>
-<!--span id="metadata"></span-->
+Species <select id="speciesMenu" onchange="updateGenomeMenu()"></select>
+</p>
+<p>
+Genome <select id="genomeMenu" onchange="updateMetadata()"></select>
+&rarr;
+Infraspecies=<span id="infraspecies"></span>,
+Origin=<span id="origin"></span>
 </p>
 
-<p><button type="button" onclick="clearGwasMetadata()">Clear</button></p>
+<p>Enter or <button type="button" onclick="clearGwasMetadata()">Clear</button> your GWAS metadata:</p>
 <p>
-URL <input type="text" id="url" size=100 placeholder="http://www.trichomes.org/trichomes.gwas">
+URL of GWAS file <span id="error-url" style="color: red"></span>
+<input type="text" id="url" size=100 placeholder="http://www.trichomes.org/trichomes.gwas">
 </p>
 <p>
-Origin <input type="text" id="origin" size=10 placeholder="HAPMAP">
-Version <input type="text" id="version" size=5>
-Infraspecies <input type="text" id="infraspecies" size=10>
+Contact person <span id="error-contact" style="color: red"></span>
+<input type="text" id="contact" placeholder="Your Name">
+e-mail <span id="error-email" style="color: red"></span>
+<input type="text" id="email" size=30 placeholder="someone@somewhere.org">
 </p>
 <p>
-Contact person <input type="text" id="contact" placeholder="Your Name">
-e-mail <input type="text" id="email" size=30 placeholder="someone@somewhere.org">
+{% csrf_token %}
+<button type="button" onclick="submitGwasMetadata()">Register</button>
+<span id="post-success" style="color: green"></span>
+<span id="post-error" style="color: red"></span>
 </p>
-<p><button type="button" onclick="submitGwasMetadata()">Register</button></p>
+<!-- and the form would end here -->
 </div>
 
 <!-- ----------------------------------------------------------------------- -->
@@ -46,6 +56,11 @@ function getSelectedGenus() {
 function getSelectedSpecies() {
     var speciesMenu = document.getElementById("speciesMenu");
     return speciesMenu.options[speciesMenu.selectedIndex].value;
+}
+
+function getSelectedGenome() {
+    var genomeMenu = document.getElementById("genomeMenu");
+    return genomeMenu.options[genomeMenu.selectedIndex].value;
 }
 
 // Populate the Genus menu from DSCensor
@@ -92,72 +107,131 @@ function updateSpeciesMenu() {
             e.value = speciesList[i];
             speciesMenu.appendChild(e);
         }
+        // Populate the genome menu
+        updateGenomeMenu();
+    });
+}
+
+// Populate the Genome menu from DSCensor
+function updateGenomeMenu() {
+    var genomeMenu = document.getElementById("genomeMenu");
+
+    // Clear the genome menu
+    for (var i = genomeMenu.options.length - 1; i >= 0; i--) {
+        genomeMenu.options[i] = null;
+    }
+
+    // Populate the genome menu
+    var fastaList;
+    $.getJSON(baseUrlMetadata + getSelectedGenus() + ":" + getSelectedSpecies() + ":fasta", function(obj) {
+        //console.log(obj.data);
+        fastaList = obj.data;
+        for (var i = 0; i < fastaList.length; i++) {
+            var e = document.createElement("option");
+            e.textContent = fastaList[i].name;
+            e.value = fastaList[i].name;
+            genomeMenu.appendChild(e);
+        }
         // Populate metadata
         updateMetadata();
     });
 }
 
-// Example of how to read existing metadata from DSCensor (and display them in metadataSpan)
+// Populate certain metadata fields from the selected genome
 function updateMetadata() {
-    // Clear the metadata
-    var metadataSpan = document.getElementById("metadata");
-    if (metadataSpan == null) return
-    metadataSpan.innerHTML = "";
-
     // Populate the metadata
-    $.getJSON(baseUrlMetadata + getSelectedGenus() + ":" + getSelectedSpecies(), function(obj) {
-        //console.log(obj.data);
-        var g = 0;
-        for (var i = 0; i < obj.data.length; i++) {
-            if (obj.data[i].filetype == "gwas") ++g;
-        }
-        metadataSpan.innerHTML = "Found " + obj.data.length + " items, of which " + g + " are GWAS data";
+    var genomeMenu = document.getElementById("genomeMenu");
+    $.getJSON(baseUrlMetadata + getSelectedGenus() + ":" + getSelectedSpecies() + ":fasta", function(obj) {
+        var metadata = obj.data[genomeMenu.selectedIndex];
+        var infraspeciesSpan = document.getElementById("infraspecies");
+        infraspeciesSpan.innerHTML = metadata.infraspecies;
+        var originSpan = document.getElementById("origin");
+        originSpan.innerHTML = metadata.origin;
     });
+}
+
+// Clear all messages
+function clearGwasMessages() {
+    var fields = [ "error-url", "error-contact", "error-email", "post-success", "post-error" ];
+    for (var i = 0; i < fields.length; i++) {
+        document.getElementById(fields[i]).innerHTML = "";
+    }
 }
 
 // Clear all fields
 function clearGwasMetadata() {
-    var fields = [ "url", "origin", "version", "infraspecies", "contact", "email" ];
+    var fields = [ "url", "contact", "email" ];
     for (var i = 0; i < fields.length; i++) {
         document.getElementById(fields[i]).value = "";
     }
+    clearGwasMessages();
 }
 
-// Validate all metadata
-function validateGwasMetadata(url, name, origin, contact, email) {
-    return (email.indexOf('@') >= 0);
+// Validators (quick and dirty ones, for now)
+function isValidText(text) {
+    return text.length > 0;
+}
+function isValidEmail(text) {
+    len = text.length;
+    iAt = text.indexOf('@');
+    return len > 2 && iAt > 0 && iAt < (len - 1);
+}
+function isValidUrl(text) {
+    return text.length > 0;
 }
 
 // Do something with the GWAS metadata
 function submitGwasMetadata() {
+    clearGwasMessages();
+
     var url = document.getElementById("url").value;
     var name = url.substr(url.lastIndexOf('/') + 1);
-    var origin = document.getElementById("origin").value;
-    var version = document.getElementById("version").value;
-    var infraspecies = document.getElementById("infraspecies").value;
     var contact = document.getElementById("contact").value;
     var email = document.getElementById("email").value;
 
-    if (!validateGwasMetadata(url, name, origin, contact, email)) {
-        alert("Invalid metadata (...)");
-        return
+    var valid = true;
+    if (!isValidUrl(url)) {
+        document.getElementById("error-url").innerHTML = "Invalid -";
+        valid = false;
     }
+    if (!isValidText(contact)) {
+        document.getElementById("error-contact").innerHTML = "Invalid -";
+        valid = false;
+    }
+    if (!isValidEmail(email)) {
+        document.getElementById("error-email").innerHTML = "Invalid -";
+        valid = false;
+    }
+    if (!valid) return;
 
     var obj = {};
     obj.data = {};
     obj.data.filetype = "gwas";
     obj.data.genus = getSelectedGenus();
     obj.data.species = getSelectedSpecies();
+    obj.data.genome = getSelectedGenome();
+    obj.data.infraspecies = document.getElementById("infraspecies").innerHTML;
+    obj.data.origin = document.getElementById("origin").innerHTML;
     obj.data.url = url;
     obj.data.name = name;
-    obj.data.origin = origin;
-    obj.data.version = version;
-    obj.data.infraspecies = infraspecies;
     obj.data.contact = contact;
     obj.data.email = email;
 
     var json = JSON.stringify(obj);
-    alert(json);
+    //console.log(json);
+    $.ajax({
+        url: "gwas/",
+        type: "POST",
+        data: { json, csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken').val() },
+        success: function(result) {
+            //console.log(json);
+            document.getElementById("post-success").innerHTML = '&rarr; Successfully registered ' + url;
+        },
+        error: function(e) {
+            console.log(e);
+            document.getElementById("post-error").innerHTML = '&rarr; Error ' + e.status;
+        }
+    });
 }
 
 </script>
