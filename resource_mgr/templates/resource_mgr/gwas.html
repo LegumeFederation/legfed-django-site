@@ -6,14 +6,13 @@
 Genus <select id="genusMenu" onchange="updateSpeciesMenu()"></select>
 Species <select id="speciesMenu" onchange="updateGenomeMenu()"></select>
 </p>
-<p>
-Genome <select id="genomeMenu" onchange="updateMetadata()"></select>
-&rarr;
-Infraspecies=<span id="infraspecies"></span>,
-Origin=<span id="origin"></span>
-</p>
+<p>Genome <select id="genomeMenu" onchange="updateMetadata()"></select></p>
 
 <p>Enter or <button type="button" onclick="clearGwasMetadata()">Clear</button> your GWAS metadata:</p>
+<p>
+Origin <span id="error-origin" style="color: red"></span>
+<input type="text" id="origin">
+</p>
 <p>
 URL of GWAS file <span id="error-url" style="color: red"></span>
 <input type="text" id="url" size=100 placeholder="http://www.trichomes.org/trichomes.gwas">
@@ -75,10 +74,10 @@ function updateGenusMenu() {
     var genusList;
     $.getJSON(baseUrlTaxa, function(obj) {
         //console.log(obj.data);
-        genusList = obj.data;
+        genusList = obj.data.sort();
         for (var i = 0; i < genusList.length; i++) {
             var e = document.createElement("option");
-            e.textContent = title(genusList[i]);
+            e.text = title(genusList[i]);
             e.value = genusList[i];
             genusMenu.appendChild(e);
         }
@@ -100,10 +99,10 @@ function updateSpeciesMenu() {
     var speciesList;
     $.getJSON(baseUrlTaxa + getSelectedGenus(), function(obj) {
         //console.log(obj.data);
-        speciesList = obj.data;
+        speciesList = obj.data.sort();
         for (var i = 0; i < speciesList.length; i++) {
             var e = document.createElement("option");
-            e.textContent = speciesList[i];
+            e.text = speciesList[i];
             e.value = speciesList[i];
             speciesMenu.appendChild(e);
         }
@@ -122,14 +121,15 @@ function updateGenomeMenu() {
     }
 
     // Populate the genome menu
-    var fastaList;
-    $.getJSON(baseUrlMetadata + getSelectedGenus() + ":" + getSelectedSpecies() + ":fasta", function(obj) {
+    $.getJSON(baseUrlMetadata + getSelectedGenus() + ":" + getSelectedSpecies() + ":genome_main", function(obj) {
         //console.log(obj.data);
-        fastaList = obj.data;
-        for (var i = 0; i < fastaList.length; i++) {
+        var genomeList = obj.data.sort(function(genome1, genome2) { return genome1.name > genome2.name; });
+        for (var i = 0; i < genomeList.length; i++) {
             var e = document.createElement("option");
-            e.textContent = fastaList[i].name;
-            e.value = fastaList[i].name;
+            e.text = genomeList[i].name;
+            e.value = genomeList[i].name;
+            // store the genome's origin in the label field, for easy retrieval
+            e.label = genomeList[i].origin;
             genomeMenu.appendChild(e);
         }
         // Populate metadata
@@ -141,18 +141,14 @@ function updateGenomeMenu() {
 function updateMetadata() {
     // Populate the metadata
     var genomeMenu = document.getElementById("genomeMenu");
-    $.getJSON(baseUrlMetadata + getSelectedGenus() + ":" + getSelectedSpecies() + ":fasta", function(obj) {
-        var metadata = obj.data[genomeMenu.selectedIndex];
-        var infraspeciesSpan = document.getElementById("infraspecies");
-        infraspeciesSpan.innerHTML = metadata.infraspecies;
-        var originSpan = document.getElementById("origin");
-        originSpan.innerHTML = metadata.origin;
-    });
+    var originText = document.getElementById("origin");
+    // retrieve the genome's origin from the label field
+    originText.value = genomeMenu.options[genomeMenu.selectedIndex].label;
 }
 
 // Clear all messages
 function clearGwasMessages() {
-    var fields = [ "error-url", "error-contact", "error-email", "post-success", "post-error" ];
+    var fields = [ "error-origin", "error-url", "error-contact", "error-email", "post-success", "post-error" ];
     for (var i = 0; i < fields.length; i++) {
         document.getElementById(fields[i]).innerHTML = "";
     }
@@ -160,6 +156,7 @@ function clearGwasMessages() {
 
 // Clear all fields
 function clearGwasMetadata() {
+    updateMetadata();
     var fields = [ "url", "contact", "email" ];
     for (var i = 0; i < fields.length; i++) {
         document.getElementById(fields[i]).value = "";
@@ -184,18 +181,23 @@ function isValidUrl(text) {
 function submitGwasMetadata() {
     clearGwasMessages();
 
+    var origin = document.getElementById("origin").value;
     var url = document.getElementById("url").value;
     var name = url.substr(url.lastIndexOf('/') + 1);
     var contact = document.getElementById("contact").value;
     var email = document.getElementById("email").value;
 
     var valid = true;
+    if (!isValidText(origin)) {
+        document.getElementById("error-origin").innerHTML = "Required -";
+        valid = false;
+    }
     if (!isValidUrl(url)) {
         document.getElementById("error-url").innerHTML = "Invalid -";
         valid = false;
     }
     if (!isValidText(contact)) {
-        document.getElementById("error-contact").innerHTML = "Invalid -";
+        document.getElementById("error-contact").innerHTML = "Required -";
         valid = false;
     }
     if (!isValidEmail(email)) {
@@ -205,17 +207,18 @@ function submitGwasMetadata() {
     if (!valid) return;
 
     var obj = {};
-    obj.data = {};
-    obj.data.filetype = "gwas";
-    obj.data.genus = getSelectedGenus();
-    obj.data.species = getSelectedSpecies();
-    obj.data.genome = getSelectedGenome();
-    obj.data.infraspecies = document.getElementById("infraspecies").innerHTML;
-    obj.data.origin = document.getElementById("origin").innerHTML;
-    obj.data.url = url;
-    obj.data.name = name;
-    obj.data.contact = contact;
-    obj.data.email = email;
+    obj.canonical_type = "genome_main";
+    obj.filetype = "gwas";
+    obj.genus = getSelectedGenus();
+    obj.species = getSelectedSpecies();
+    genome = getSelectedGenome();
+    obj.child_of = [ genome ];
+    obj.derived_from = [ genome ];
+    obj.origin = origin;
+    obj.url = url;
+    obj.name = name;
+    obj.contact = contact;
+    obj.email = email;
 
     var json = JSON.stringify(obj);
     //console.log(json);

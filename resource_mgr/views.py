@@ -26,10 +26,8 @@ def gwas(request) :
         # Write the returned GWAS metadata to a file
         dout = '/var/www/legfed-django-site/legfedsite/ds-public/'
         obj = json.loads(request.POST.get('json'))
-        name = obj['data']['name']
-        fout = open(dout + name + '.json', 'w')
-        fout.write(request.POST.get('json'))
-        fout.write('\n')
+        fout = open(dout + obj['name'] + '.json', 'w')
+        fout.write(json.dumps(obj))
         fout.close()
 
         # Done - return to the Data Store page
