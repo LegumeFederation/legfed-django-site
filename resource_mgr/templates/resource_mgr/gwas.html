@@ -207,7 +207,7 @@ function submitGwasMetadata() {
     if (!valid) return;
 
     var obj = {};
-    obj.canonical_type = "genome_main";
+    obj.canonical_type = "gwas";
     obj.filetype = "gwas";
     obj.genus = getSelectedGenus();
     obj.species = getSelectedSpecies();
@@ -216,7 +216,7 @@ function submitGwasMetadata() {
     obj.derived_from = [ genome ];
     obj.origin = origin;
     obj.url = url;
-    obj.name = name;
+    obj.filename = name;
     obj.contact = contact;
     obj.email = email;
 
