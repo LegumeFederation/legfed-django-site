@@ -4,7 +4,8 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 
 from .models import Resource, Organization
-from .models import DataDownload, Tour, Tool
+from .models import DataDownload, Tour
+from .models import Tool, ToolDataType
 
 import json
 import math
@@ -45,19 +46,12 @@ def tours(request) :
 
 def tools(request) :
     tools_list = Tool.objects.all()
+    datatypes_list = ToolDataType.objects.all()
 
     # construct the graph JSON
-    ll = ','.join(['{"source":%d,"target":%d}'%(t.input_data_type.id, t.output_data_type.id) for t in tools_list])
-    nn = set()
-    for t in tools_list :
-        i = t.input_data_type.id
-        o = t.output_data_type.id
-        nn.update([i, o])
-    n = max(nn)
-    W = H = 480 # for now
-    M = 10
-    nn_xy = ','.join(['{"x":%d,"y":%d}'%(int(0.5*(W + (W - 2*M)*math.cos(2*math.pi*k/n))), int(0.5*(H + (H - 2*M)*math.sin(2*math.pi*k/n)))) for k in range(0, n) ]) # circular layout, for now
-    tools_graph_json = '{"nodes":[%s],"links":[%s]}'%(nn_xy, ll)
+    nn = ','.join(['{"name":"%s","id":%d}'%(t.name, t.id) for t in datatypes_list])
+    ll = ','.join(['{"name":"%s","source":%d,"target":%d}'%(t.get_text(), t.input_data_type.id, t.output_data_type.id) for t in tools_list])
+    tools_graph_json = '{"nodes":[%s],"links":[%s]}'%(nn, ll)
 
     context = {
         'tools_list': tools_list,
