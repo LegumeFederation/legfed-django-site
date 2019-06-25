@@ -86,7 +86,6 @@ class ToolAnalysisType(models.Model) :
         return self.name
 
 class Tool(Resource) :
-    species = None
     input_data_type = models.ForeignKey(ToolDataType, related_name = 'tool_input_data_type', on_delete = models.CASCADE)
     output_data_type = models.ForeignKey(ToolDataType, related_name = 'tool_output_data_type', on_delete = models.CASCADE)
     analysis_type = models.ForeignKey(ToolAnalysisType, on_delete = models.CASCADE)

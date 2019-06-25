@@ -22,12 +22,7 @@ class TourAdmin(admin.ModelAdmin) :
 
 admin.site.register(Tour, TourAdmin)
 
-class ToolAdmin(admin.ModelAdmin) :
-    exclude = (
-        'species',
-    )
-
-admin.site.register(Tool, ToolAdmin)
+admin.site.register(Tool)
 admin.site.register(ToolDataType)
 admin.site.register(ToolAnalysisType)
 
