@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from .models import Resource, Organization
 from .models import DataDownload, Tour
 from .models import Tool, ToolDataType
+from .models import Species
 
 import json
 import math
@@ -47,15 +48,17 @@ def tours(request) :
 def tools(request) :
     tools_list = Tool.objects.all()
     datatypes_list = ToolDataType.objects.all()
+    species_list = Species.objects.all()
 
     # construct the graph JSON
     nn = ','.join(['{"name":"%s","id":%d}'%(t.name, t.id) for t in datatypes_list])
-    ll = ','.join(['{"name":"%s","source":%d,"target":%d}'%(t.get_text(), t.input_data_type.id, t.output_data_type.id) for t in tools_list])
+    ll = ','.join(['{"name":"%s","source":%d,"target":%d,"species":"%s"}'%(t.get_text(), t.input_data_type.id, t.output_data_type.id, ','.join("%s %s"%(s.genus_name, s.species_name) for s in t.species.all())) for t in tools_list])
     tools_graph_json = '{"nodes":[%s],"links":[%s]}'%(nn, ll)
 
     context = {
         'tools_list': tools_list,
         'tools_graph_json': tools_graph_json,
+        'species_list': species_list,
     }
     return render(request, 'resource_mgr/tools.html', context)
 

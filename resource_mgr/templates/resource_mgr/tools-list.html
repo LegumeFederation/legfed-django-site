@@ -17,6 +17,14 @@
 {% endfor %}
 
 <h3>Relations between Tools</h3>
+<p>Species:
+<select id="speciesMenu" onchange="drawGraph()">
+    {% for species in species_list %}
+        <option>{{ species.genus_name }} {{ species.species_name }}</option>
+    {% endfor %}
+</select>
+</p>
+
 {# Construct a graph of the relations (analysis types) between data types #}
 <style type="text/css">
   path.link, path.textpath {
@@ -38,7 +46,7 @@
 <script type="text/javascript">
   data = JSON.parse('{{ tools_graph_json|safe }}');
 
-  function myGraph() {
+  function ToolsGraph() {
     this.addNode = function (id, name) {
       if (!findNode(id)) {
         nodes.push({"id": id, "name": name});
@@ -51,12 +59,27 @@
       update();
     };
 
-    this.initialize = function() {
+    this.initialize = function(s) {
+      // Filter the nodes and links by s (selected species)
+      var hhNodes = {};
+      var hhLinks = {};
       data.nodes.forEach(function(n) {
-        graph.addNode(n.id, n.name);
+        hhNodes[n.id] = false;
       });
       data.links.forEach(function(d) {
-        graph.addLink(d.source, d.target, d.name);
+        hhLinks[d.name] = false;
+        dss = d.species.split(',');
+        if (d.species === '' || dss.indexOf(s) >= 0) {
+          hhNodes[d.source] = true;
+          hhNodes[d.target] = true;
+          hhLinks[d.name] = true;
+        }
+      });
+      data.nodes.forEach(function(n) {
+        if (hhNodes[n.id]) graph.addNode(n.id, n.name);
+      });
+      data.links.forEach(function(d) {
+        if (hhLinks[d.name]) graph.addLink(d.source, d.target, d.name);
       });
     };
 
@@ -266,8 +289,11 @@
   }
 
   function drawGraph() {
-    graph = new myGraph();
-    graph.initialize();
+    speciesList = document.getElementById("speciesMenu");
+    selectedSpecies = speciesList[speciesList.selectedIndex].value;
+
+    graph = new ToolsGraph();
+    graph.initialize(selectedSpecies);
   }
 
   drawGraph();
