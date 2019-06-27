@@ -227,6 +227,28 @@ DJANGOCMS_FORMS_DEFAULT_TEMPLATE = 'djangocms_forms/form_template/default.html'
 DJANGOCMS_FORMS_USE_HTML5_REQUIRED = False
 DJANGOCMS_FORMS_REDIRECT_DELAY = 1000  # 1 second
 
+# For security, read the reCaptcha keys from a file not under version control!
+def loadRecaptchaKeys(filename) :
+    # Read lines from the file
+    f = open(filename, 'r')
+    lines = f.readlines()
+    f.close()
+
+    # Parse the reCaptcha keys
+    keys = {}
+    for l in lines :
+        if l.startswith('#') :
+            continue
+        fields = l.split('=')
+        keys[fields[0].strip()] = fields[1].strip().strip('\'')
+
+    return keys
+
+RECAPTCHA_KEYS = loadRecaptchaKeys(os.path.join(BASE_DIR, 'legfedsite', 'recaptcha.txt'))
+DJANGOCMS_FORMS_RECAPTCHA_PUBLIC_KEY = RECAPTCHA_KEYS['DJANGOCMS_FORMS_RECAPTCHA_PUBLIC_KEY']
+DJANGOCMS_FORMS_RECAPTCHA_SECRET_KEY = RECAPTCHA_KEYS['DJANGOCMS_FORMS_RECAPTCHA_SECRET_KEY']
+RECAPTCHA_KEYS = {} # as the dictionary is no longer necessary
+
 EMAIL_HOST = 'hardy.lis.ncgr.org'
 EMAIL_PORT = 25
 
