@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'oq=$uz2u_xzlsi%o5-*f4#h2q=$2zkb8-m^w6aqm0g214tys!2'
+from legfedsite.private_settings import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -226,28 +226,9 @@ DJANGOCMS_FORMS_PLUGIN_NAME = ('Form')
 DJANGOCMS_FORMS_DEFAULT_TEMPLATE = 'djangocms_forms/form_template/default.html'
 DJANGOCMS_FORMS_USE_HTML5_REQUIRED = False
 DJANGOCMS_FORMS_REDIRECT_DELAY = 1000  # 1 second
-
-# For security, read the reCaptcha keys from a file not under version control!
-def loadRecaptchaKeys(filename) :
-    # Read lines from the file
-    f = open(filename, 'r')
-    lines = f.readlines()
-    f.close()
-
-    # Parse the reCaptcha keys
-    keys = {}
-    for l in lines :
-        if l.startswith('#') :
-            continue
-        fields = l.split('=')
-        keys[fields[0].strip()] = fields[1].strip().strip('\'')
-
-    return keys
-
-RECAPTCHA_KEYS = loadRecaptchaKeys(os.path.join(BASE_DIR, 'legfedsite', 'recaptcha.txt'))
-DJANGOCMS_FORMS_RECAPTCHA_PUBLIC_KEY = RECAPTCHA_KEYS['DJANGOCMS_FORMS_RECAPTCHA_PUBLIC_KEY']
-DJANGOCMS_FORMS_RECAPTCHA_SECRET_KEY = RECAPTCHA_KEYS['DJANGOCMS_FORMS_RECAPTCHA_SECRET_KEY']
-RECAPTCHA_KEYS = {} # as the dictionary is no longer necessary
+# For security, the reCaptcha keys now live in private_settings
+# DJANGOCMS_FORMS_RECAPTCHA_PUBLIC_KEY = '...'
+# DJANGOCMS_FORMS_RECAPTCHA_SECRET_KEY = '...'
 
 EMAIL_HOST = 'hardy.lis.ncgr.org'
 EMAIL_PORT = 25
