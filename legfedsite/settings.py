@@ -154,6 +154,7 @@ INSTALLED_APPS = (
     'resources_cms_integration',
     'announcements.apps.AnnouncementsConfig',
     'announcements_cms_integration',
+    'linkout_mgr.apps.LinkoutMgrConfig',
 )
 
 LANGUAGES = (

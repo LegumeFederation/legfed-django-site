@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+LegFed: Linkouts
+{% endblock %}
+
+{% block content %}
+
+<h1>Linkouts</h1>
+
+{% if gene|length == 0 %}
+
+<p>
+To return results aggregated across available linkout services, append a gene symbol to this page&rsquo;s base URL. For example,
+</p><p>
+&nbsp;&nbsp;&nbsp;&nbsp; http://{{ request.get_host }}{{ request.path|urlencode }}<b><i>?gene=medtr.HM022.g4086</i></b>
+</p><p>
+(or <a href="http://{{ request.get_host }}{{ request.path|urlencode }}?gene=medtr.HM022.g4086">click here</a> to get started)
+</p>
+
+{% else %}
+
+<h4>Results for {{ gene }}</h4>
+<ul>
+{% for l in aggregated_links %}
+  <li><a href="{{ l.0 }}" target="_blank">{{ l.1 }}</a>
+{% endfor %}
+</ul>
+
+{% endif %}
+
+{% endblock %}
+
