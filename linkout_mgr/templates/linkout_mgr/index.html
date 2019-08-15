@@ -10,44 +10,32 @@ LegFed: Linkouts
 
 <h1>Linkouts</h1>
 
-<div style="background-color: #ddeeff">
+<div style="padding: 8px; background-color: #ddeeff">
 <h4>Gene linkouts</h4>
 <p>
-To return results aggregated across available linkout services, append a gene symbol to this page&rsquo;s base URL. For example,
-</p><p>
-&nbsp;&nbsp;&nbsp;&nbsp; http://{{ request.get_host }}{{ request.path|urlencode }}<b><i>?gene=medtr.HM022.g4086</i></b>
-</p><p>
-(or <a href="http://{{ request.get_host }}{{ request.path|urlencode }}?gene=medtr.HM022.g4086">click here</a> to get started)
+To return results aggregated across available linkout services, enter a gene name.
 </p>
-</div>
-
-<div style="background-color: #ffeedd">
-<h4>Genomic regions</h4>
-<p>
-To return results aggregated across available linkout services, append a sequence name and start &amp; end positions to this page&rsquo;s base URL. For example,
-</p><p>
-&nbsp;&nbsp;&nbsp;&nbsp; http://{{ request.get_host }}{{ request.path|urlencode }}<b><i>?seqname=medtr.jemalong_A17.gnm5.MtrunA17Chr1&start=10000&end=20000</i></b>
-</p><p>
-(or <a href="http://{{ request.get_host }}{{ request.path|urlencode }}?seqname=medtr.jemalong_A17.gnm5.MtrunA17Chr1&start=10000&end=20000">click here</a> to get started)
-</p>
-</div>
-
-<!-- TODO: add the following code to allow the user to enter fields without constructing a URL as shown above -->
-<!--div style="padding: 8px; background-color: #ddffdd">
-<h4>by Gene</h4>
-Gene name <input type="text" id="gene" size=60 placeholder="e.g. medtr.HM022.g4086">
-{% csrf_token %}
+Gene name <input type="text" id="gene" size=60>
+<br>
+<button type="button" onclick="exampleGene()">Example</button>
 <button type="button" onclick="submitGene()">Submit</button>
 </div>
+
 <p>
-<div style="padding: 8px; background-color: #ddffdd">
-<h4>by Genomic Region</h4>
-Sequence name <input type="text" id="seqname" size=60 placeholder="e.g. medtr.jemalong_A17.gnm5.MtrunA17Chr1">
-Start position <input type="text" id="start" size=12 placeholder="10000000">
-End position <input type="text" id="end" size=12 placeholder="20000000">
-{% csrf_token %}
+
+<div style="padding: 8px; background-color: #ffeedd">
+<h4>Genomic regions</h4>
+<p>
+To return results aggregated across available linkout services, enter a sequence name and start &amp; end positions.
+</p>
+Sequence name <input type="text" id="seqname" size=60>
+<br>
+Start position <input type="text" id="start" size=12>
+End position <input type="text" id="end" size=12>
+<br>
+<button type="button" onclick="exampleGenomicRegion()">Example</button>
 <button type="button" onclick="submitGenomicRegion()">Submit</button>
-</div-->
+</div>
 
 {% if not label|length == 0 %}
 
@@ -64,53 +52,28 @@ End position <input type="text" id="end" size=12 placeholder="20000000">
 {% endif %}
 
 <!-- ----------------------------------------------------------------------- -->
-<!-- TODO: fix the following JavaScript code, and use it to send the desired fields back to the view -->
 <script>
 
-function submitGene() {
-    var linkout_type = 'gene';
-    var gene = document.getElementById("gene").value.trim();
+function exampleGene() {
+    document.getElementById("gene").value = "medtr.Medtr5g017810";
+}
 
-    $.ajax({
-        url: "gene_linkout/",
-        type: "POST",
-        data: {
-            linkout_type: linkout_type,
-            gene: gene,
-            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken').val()
-        },
-        success: function(result) {
-            //console.log('...');
-        },
-        error: function(e) {
-            console.log(e);
-        }
-    });
+function submitGene() {
+    var gene = document.getElementById("gene").value.trim();
+    window.location = '?gene=' + gene;
+}
+
+function exampleGenomicRegion() {
+    document.getElementById("seqname").value = "medtr.jemalong_A17.gnm5.MtrunA17Chr1";
+    document.getElementById("start").value = "10000000";
+    document.getElementById("end").value = "20000000";
 }
 
 function submitGenomicRegion() {
-    var linkout_type = 'genomic_region';
     var seqname = document.getElementById("seqname").value.trim();
     var start = document.getElementById("start").value.trim();
     var end = document.getElementById("end").value.trim();
-
-    $.ajax({
-        url: "genomic_region_linkout/",
-        type: "POST",
-        data: {
-            linkout_type: linkout_type,
-            seqname: seqname,
-            start: start,
-            end: end,
-            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken').val()
-        },
-        success: function(result) {
-            //console.log('...');
-        },
-        error: function(e) {
-            console.log(e);
-        }
-    });
+    window.location = '?seqname=' + seqname + '&start=' + start + '&end=' + end;
 }
 
 </script>
