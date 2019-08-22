@@ -26,7 +26,7 @@ Gene name <input type="text" id="gene" size=60>
 <div style="padding: 8px; background-color: #ffeedd">
 <h4>Genomic regions</h4>
 <p>
-To return results aggregated across available linkout services, enter a sequence name and start &amp; end positions.
+To return results aggregated across available linkout services, enter a sequence name and start &amp; end positions (in bp).
 </p>
 Sequence name <input type="text" id="seqname" size=60>
 <br>
@@ -60,20 +60,33 @@ function exampleGene() {
 
 function submitGene() {
     var gene = document.getElementById("gene").value.trim();
-    window.location = '?gene=' + gene;
+    if (gene.length == 0) {
+        window.location = '?';
+    } else {
+        window.location = '?gene=' + gene;
+    }
 }
 
 function exampleGenomicRegion() {
     document.getElementById("seqname").value = "medtr.jemalong_A17.gnm5.MtrunA17Chr1";
-    document.getElementById("start").value = "10000000";
-    document.getElementById("end").value = "20000000";
+    document.getElementById("start").value = "1";
+    document.getElementById("end").value = "1000000";
 }
 
 function submitGenomicRegion() {
     var seqname = document.getElementById("seqname").value.trim();
     var start = document.getElementById("start").value.trim();
     var end = document.getElementById("end").value.trim();
-    window.location = '?seqname=' + seqname + '&start=' + start + '&end=' + end;
+    // strip leading zeros, if any
+    ns = parseInt(start);
+    ne = parseInt(end);
+    if (seqname.length == 0 || ns <= 0 || isNaN(ns) || ne <= 0 || isNaN(ne)) {
+	window.location = '?';
+    } else {
+        start = String(ns);
+        end = String(ne);
+        window.location = '?seqname=' + seqname + '&start=' + start + '&end=' + end;
+    }
 }
 
 </script>

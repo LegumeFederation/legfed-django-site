@@ -22,18 +22,14 @@ def gene_context(request) :
     tt = []
     services = GeneLinkout.objects.all()
     for service in services :
-        try :
-            rr = requests.get(service.insert_gene(gene))
-            jj = rr.json()
-            for j in jj :
-                href = j['href']
-                # TODO: confirm whether to prepend 'http:'
-                if (not href.startswith('http')) :
-                    href = 'http:' + href
-                hh.append(href)
-                tt.append(j['text'])
-        except :
-            pass
+        jj = service.get_linkouts(gene)
+        for j in jj :
+            href = j['href']
+            # TODO: confirm whether to prepend 'http:'
+            if (not href.startswith('http')) :
+                href = 'http:' + href
+            hh.append(href)
+            tt.append(j['text'])
 
     aggregated_links = zip(hh, tt)
     context = {
@@ -53,10 +49,14 @@ def genomic_region_context(request) :
     tt = []
     services = GenomicRegionLinkout.objects.all()
     for service in services :
-        # TODO: confirm that the service is valid for the given genomic region
-        href = service.insert_genomic_region(sequence_name, start_pos, end_pos)
-        hh.append(href)
-        tt.append(service.name)
+        jj = service.get_linkouts(sequence_name, start_pos, end_pos)
+        for j in jj :
+            href = j['href']
+            # TODO: confirm whether to prepend 'http:'
+            if (not href.startswith('http')) :
+                href = 'http:' + href
+            hh.append(href)
+            tt.append(j['text'])
 
     aggregated_links = zip(hh, tt)
     context = {
