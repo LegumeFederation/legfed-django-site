@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% load filters %}
 
 {% block title %}
 LegFed: InterMines
@@ -10,34 +11,134 @@ LegFed: InterMines
 
 <h1>InterMines</h1>
 
-<p>InterMine search results go here.</p>
-
-{# If necessary, open the URL in a new window #}
-<!--script> window.open("{{ url }}", "_blank"); </script-->
-
-<!--
-{% if gene|length == 0 %}
-
+<div style="padding: 8px">
+<h4>Search</h4>
 <p>
-To return results aggregated across available linkout services, append a gene symbol to this page&rsquo;s base URL. For example,
+Enter names, identifiers, or keywords for genes, proteins, ontology terms, QTLs, <i>etc</i>.
 </p><p>
-&nbsp;&nbsp;&nbsp;&nbsp; http://{{ request.get_host }}{{ request.path|urlencode }}<b><i>?gene=medtr.HM022.g4086</i></b>
+Examples: Medtr2g036650, plasma membrane, sucrose synthase, Glyma.16G153700, Glyma.16G153700.1, BARCSOYSSR_04_1400, Seed yield 15-5
 </p><p>
-(or <a href="http://{{ request.get_host }}{{ request.path|urlencode }}?gene=medtr.HM022.g4086">click here</a> to get started)
+Keywords: <input type="text" id="keywords" size=100>
+</p>
+<button type="button" onclick="submitKeywords()">Search</button>
+</div>
+
+{% if error_status_code %}
+  <p style="color: #ff0000">
+    There was an internal error <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes" target="blank">(status code {{ error_status_code }})</a> while processing your request.
+    The problem has been logged and will be investigated.
+    You may also <a href="mailto:{{ error_recipient }}?body={{ error_message }}&subject={{ error_subject }}">send us an email</a> describing how you encountered this error.
+    The problem may be temporary, in which case you might wish to <a href="javascript:history.back()">go back</a> and try your request again, or return to the <a href=".">InterMines page</a>.
+  </p>
+
+{% elif keywords|length > 0 %}
+  {% if num_rows == 0 %}
+    <h4>No results found for keywords: {{ keywords }}</h4>
+
+  {% else %}
+    {# Facets table #}
+    <table><tr>
+      <td style="vertical-align: top; padding: 8px">
+        {# fk is the category, fv is a dictionary of { value: hits } #}
+        {% for fk, fv in facets.items|dictsort:0 %}
+          {% if fk in facet_filters %}
+            <p><b>{{ fk|cut:'.shortName'|capfirst }}: {{ facet_filters|dictget:fk }}</b></p>
+            {# TODO: only remove filter fk #}
+            <p><a href="?keywords={{ keywords }}">&lt;&lt; Show All</a></p>
+          {% elif fv|length > 0 %}
+            <p><b>Hits by {{ fk|cut:'.shortName'|capfirst }}</b></p>
+            <ul style="list-style-position: inside; padding: 0">
+              {# To use dictsort on multiple fields, more important ones go later #}
+              {% for k, h in fv.items|dictsort:0|dictsortreversed:1 %}
+                {# facet_filters_str allows persisting previous filters #}
+                <li><a href="?keywords={{ keywords }}{{ facet_filters_str }}&{{ fk }}={{ k }}" title="Click to show only '{{ k }}'">{{ k }}: {{ h }}</a>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endfor %}
+      </td>
+
+      {# Results table #}
+      {# Note that start indices are 0-based in the view, 1-based in the template #}
+      <td style="padding: 8px">
+        <h4>Results {{ start_row }}-{{ end_row }} of {{ num_rows }} for keywords: {{ keywords }}</h4>
+        {% for fk, fv in facet_filters.items|dictsort:0 %}
+          <p align="center"><b>{{ fk|cut:'.shortName'|capfirst }} restricted to {{ fv }}</b></p>
+        {% endfor %}
+        <p align="center">
+          {% if start_row == 1 %}
+            |&lt; First &nbsp; &nbsp;
+            &lt; Previous &nbsp; &nbsp;
+          {% else %}
+            <a href="?keywords={{ keywords }}{{ facet_filters_str }}&start=1">|&lt; First</a> &nbsp; &nbsp;
+            <a href="?keywords={{ keywords }}{{ facet_filters_str }}&start={{ start_prev }}">&lt; Previous</a> &nbsp; &nbsp;
+          {% endif %}
+          |
+          {% if start_row == start_last %}
+            &nbsp; &nbsp; Next &gt;
+            &nbsp; &nbsp; Last &gt;|
+          {% else %}
+            &nbsp; &nbsp; <a href="?keywords={{ keywords }}{{ facet_filters_str }}&start={{ start_next }}">Next &gt;</a>
+            &nbsp; &nbsp; <a href="?keywords={{ keywords }}{{ facet_filters_str }}&start={{ start_last }}">Last &gt;|</a>
+          {% endif %}
+        </p>
+        <table>
+          <tr style="background-color: #dddddd">
+            <th style="padding: 4px">Type</th>
+            <th style="padding: 4px">Details</th>
+            <th style="padding: 4px">Score</th>
+            <th style="padding: 4px">Mine</th>
+          </tr>
+          {% for r in results %}
+            <tr style="background-color: {% cycle '#ddffdd' '#ffffff' %}">
+              <td style="padding: 4px">{{ r.type }}</td>
+              <td style="padding: 4px">
+                <table>
+                  {# Most significant identifier(s) #}
+	          <tr><td colspan=2>
+                    <a href={{ r.url }} title={{ r.identifiers.0 }}><span style="color: #008000">{{ r.label1 }}</span></a>
+	            {% if r.label2 %}
+	              &bull; <a href={{ r.url }} title={{ r.identifiers.1 }}><span style="color: #008000">{{ r.label2 }}</span></a>
+	            {% endif %}
+	          </td></tr>
+	          {# Remaining detail fields #}
+	          {% for fname, fvalue in r.fields.items|dictsort:0 %}
+	            {% if fname not in r.identifiers %}
+	              <tr><td style="padding: 2px">{{ fname }}:</td><td>{{ fvalue }}</td></tr>
+	            {% endif %}
+                  {% endfor %}
+                </table>
+              </td>
+              <td style="padding: 4px">{{ r.relevance|floatformat:3 }}</td>
+              <td style="padding: 4px">{{ r.mine }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      </td>
+    </tr></table>
+
+  {% endif %}
+{% endif %}
+
+<p align="center">
+  <img src="/static/intermine_mgr/intermine-300x37.png" alt="InterMine logo"/>
 </p>
 
-{% else %}
+<!-- ----------------------------------------------------------------------- -->
+<script>
 
-<h4>Results for {{ gene }}</h4>
-<ul>
-{% for l in aggregated_links %}
-  <li><a href="{{ l.0 }}" target="_blank">{{ l.1 }}</a>
-{% empty %}
-  <li>No links found.
-{% endfor %}
-</ul>
+function submitKeywords() {
+    var keywords = document.getElementById("keywords").value.trim();
+    window.location = '?keywords=' + keywords;
+}
 
-{% endif %}
--->
+// Submit keywords if user pressed the Return key
+document.addEventListener('keypress', function(e) {
+    if (e.keyCode == 13) submitKeywords();
+});
+
+</script>
+<!-- ----------------------------------------------------------------------- -->
+
 {% endblock %}
 
