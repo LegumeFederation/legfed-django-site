@@ -65,16 +65,24 @@ class GeneLinkout(LinkoutService) :
         try :
             url = self.construct_url(gene)
         except LinkoutException as e :
-            # print(e) # TODO: could log the error,
-            return links_json # but ignore it for now
+            links_json.append({
+                'href': gene,
+                'text': self.name,
+                'error': str(e)
+            })
+            return links_json
 
         if self.true_linkouts :
             # service is a true linkout
             try :
                 rr = requests.get(url)
                 links_json = rr.json()
-            except :
-                pass # for now
+            except Exception as e :
+                links_json.append({
+                    'href': url,
+                    'text': self.name,
+                    'error': str(e)
+                })
         else :
             # service is a pseudo-linkout
             links_json.append({
@@ -85,7 +93,7 @@ class GeneLinkout(LinkoutService) :
         return links_json
 
     def get_example_linkouts(self) :
-        return get_linkouts(self, self.gene_example)
+        return self.get_linkouts(self.gene_example)
 
 # ----------------------------------------------------------
 
@@ -111,16 +119,24 @@ class GenomicRegionLinkout(LinkoutService) :
         try :
             url = self.construct_url(sequence_name, start, end)
         except LinkoutException as e :
-            # print(e) # TODO: could log the error,
-            return links_json # but ignore it for now
+            links_json.append({
+                'href': sequence_name,
+                'text': self.name,
+                'error': str(e)
+            })
+            return links_json
 
         if self.true_linkouts :
             # service is a true linkout
             try :
                 rr = requests.get(url)
                 links_json = rr.json()
-            except :
-                pass # for now
+            except Exception as e :
+                links_json.append({
+                    'href': url,
+                    'text': self.name,
+                    'error': str(e)
+                })
         else :
             # service is a pseudo-linkout
             links_json.append({
@@ -131,7 +147,7 @@ class GenomicRegionLinkout(LinkoutService) :
         return links_json
 
     def get_example_linkouts(self) :
-        return get_linkouts(self, self.sequence_example, self.start_example, self.end_example)
+        return self.get_linkouts(self.sequence_example, self.start_example, self.end_example)
 
 # ----------------------------------------------------------
 

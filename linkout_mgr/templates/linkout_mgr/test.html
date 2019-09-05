@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load filters %}
+
+{% block title %}
+LegFed: Test Linkouts
+{% endblock %}
+
+{% block content %}
+
+<h1>Linkouts Test Page</h1>
+
+{% csrf_token %}
+<button type="button" onclick="testGeneLinkouts()">Test Gene Linkouts</button>
+<button type="button" onclick="testGenomicRegionLinkouts()">Test Genomic Region Linkouts</button>
+
+{% if linkout_type|length > 0 %}
+
+<hr>
+<h4>Test Results for {{ linkout_type }} Linkouts</h4>
+<p>
+Passed {{ num_tests_passed }} of {{ num_tests_total }} tests ({{ pct_tests_passed }}%).
+</p>
+
+{% if failed_tests_list|length > 0 %}
+<p>
+Failed:
+</p>
+<ol style="list-style-position: outside; padding-left: 1em">
+{% for f in failed_tests_list %}
+  <li style="margin-bottom: 10px">{{ f|dictget:"text" }}
+    <br><span style="color: #C00000">{{ f|dictget:"error" }}</span>
+    <br>at {{ f|dictget:"href" }}
+{% endfor %}
+</ol>
+{% endif %}
+
+{% endif %}
+
+<!-- ----------------------------------------------------------------------- -->
+<script>
+
+function testGeneLinkouts() {
+    window.location = "?linkout_type=gene";
+}
+
+function testGenomicRegionLinkouts() {
+    window.location = "?linkout_type=genomic_region";
+}
+
+</script>
+<!-- ----------------------------------------------------------------------- -->
+
+{% endblock %}
+
