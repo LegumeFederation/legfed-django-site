@@ -43,8 +43,8 @@ Keywords: <input type="text" id="keywords" size=100>
         {% for fk, fv in facets.items|dictsort:0 %}
           {% if fk in facet_filters %}
             <p><b>{{ fk|cut:'.shortName'|capfirst }}: {{ facet_filters|dictget:fk }}</b></p>
-            {# TODO: only remove filter fk #}
-            <p><a href="?keywords={{ keywords }}">&lt;&lt; Show All</a></p>
+            {# Show All link removes only filter fk #}
+            <p><a href="?keywords={{ keywords }}{{ facet_filters_str|cuttag:fk }}">&lt;&lt; Show All</a></p>
           {% elif fv|length > 0 %}
             <p><b>Hits by {{ fk|cut:'.shortName'|capfirst }}</b></p>
             <ul style="list-style-position: inside; padding: 0">

@@ -201,6 +201,8 @@ def index(request) :
         pth_results = []
         pth_count = {}
         for im in intermines :
+            if im.name not in facets['Mine'] :
+                continue
             pth_results += im_results[im.name]
             pth_count[im.name] = 0
             s = im_start[im.name]
@@ -249,6 +251,8 @@ def index(request) :
             r = pth_results[i]
             pth_count[r['mine']] += 1
         for im in intermines :
+            if im.name not in facets['Mine'] :
+                continue
             im_results[im.name] = im_results[im.name][pth_count[im.name]:]
         # (next page)
 
