@@ -89,6 +89,16 @@ category2identifiers = {
   'TransposableElementGene': [ 'primaryIdentifier', 'secondaryIdentifier' ],
   'UniProtFeature': [],
 }
+# TODO: complete the list of categories that are sequences and thus have a length field
+sequence_categories = [
+  'CDS', 'Chromosome', 'ConsensusRegion', 'Exon', 'Gene', 'GeneFlankingRegion',
+  'GeneticMarker', 'IntergenicRegion', 'Intron', 'LinkageGroup', 'LinkageGroupRange',
+  'MRNA', 'Protein', 'Supercontig', 'SyntenicRegion', 'TRNA'
+]
+
+# TODO: (currently low priority) Get sequence length from a remote FASTA file or URL
+def getSequenceLength(url) :
+    return 0
 
 # Sort results by relevance
 def byRelevance(result) :
@@ -135,7 +145,8 @@ def index(request) :
         # This assumes that the search URL is always of the form <im.url>/service/search?q=<keywords>
         # and that for result details is always of the form <im.url>/report.do?<...>
         # TODO: generalize for other expected formats.
-        search_url = '%s/service/search?q=%s'%(im.url, keywords)
+        base_url = im.url.rstrip('/')
+        search_url = '%s/service/search?q=%s'%(base_url, keywords)
         if not (mine is None or mine == im.name) :
             continue
         if category is not None :
@@ -208,7 +219,8 @@ def index(request) :
             s = im_start[im.name]
             if s < 0 or len(im_results[im.name]) >= RESULTS_PER_PAGE :
                 continue
-            search_url = '%s/service/search?q=%s'%(im.url, keywords)
+            base_url = im.url.rstrip('/')
+            search_url = '%s/service/search?q=%s'%(base_url, keywords)
             if not (mine is None or mine == im.name) :
                 continue
             if category is not None :
@@ -222,7 +234,7 @@ def index(request) :
             new_results = jj['results']
             for r in new_results :
                 result_id = r['id']
-                r['url'] = '%s/report.do?id=%d&trail=|%d' % (im.url, result_id, result_id)
+                r['url'] = '%s/report.do?id=%d&trail=|%d' % (base_url, result_id, result_id)
                 ff = r['fields']
                 r['identifiers'] = ii = category2identifiers[r['type']]
                 ni = len(ii)
@@ -234,6 +246,11 @@ def index(request) :
                 if ni == 0 :
                     r['label1'] = r['type']
                 r['mine'] = im.name
+                # TODO: add length field for sequences
+                if r['type'] in sequence_categories :
+                    r['fasta_url'] = '%s/sequenceExporter.do?object=%d' % (base_url, result_id)
+                    # r['fields']['length'] = getSequenceLength(r['fasta_url'])
+                    r['blast_url'] = '%s/sequenceBlaster.do?object=%d' % (base_url, result_id)
             im_results[im.name] += new_results
             im_start[im.name] += len(new_results)
             if im_start[im.name] >= facets['Mine'][im.name] :
