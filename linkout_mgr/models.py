@@ -22,8 +22,13 @@ class LinkoutService(models.Model) :
         ordering = [ 'name' ]
 
     def num_fields_expected(self) :
-        mm = re.findall('\$\d+', self.url_format)
-        return len(mm)
+        ff = re.findall('\$(\d+)', self.url_format)
+        m = 0
+        for f in ff :
+            i = int(f)
+            if i > m :
+                m = i
+        return m
 
     def clean(self) :
         nf_url = self.num_fields_expected()
@@ -53,11 +58,13 @@ class GeneLinkout(LinkoutService) :
         if rr is None :
             raise LinkoutException('Invalid gene name format: ' + gene)
         gg = rr.groups()
-        if (len(gg) < self.num_fields_expected()) :
+        ng = len(gg)
+        if ng < self.num_fields_expected() :
             raise LinkoutException('Wrong number of fields in gene name: ' + gene)
-        # TODO: put fields in arbitrary order specified in url_format (like $2 $3 $1 $4)
-        fmt = re.sub('\$\d+', '%s', self.url_format)
-        return fmt % gg
+        url = self.url_format
+        for i in range(ng) :
+            url = re.sub('\$%d'%(i + 1), gg[i], url)
+        return url
 
     def get_linkouts(self, gene) :
         links_json = []
@@ -106,12 +113,14 @@ class GenomicRegionLinkout(LinkoutService) :
         rr = re.search(self.regex, sequence_name)
         if rr is None :
             raise LinkoutException('Invalid sequence name format: ' + sequence_name)
-        gg = rr.groups()
-        if (len(gg) < self.num_fields_expected() - 2) :
+        gg = rr.groups() + (start, end)
+        ng = len(gg)
+        if ng < self.num_fields_expected() :
             raise LinkoutException('Wrong number of fields in sequence name: ' + sequence_name)
-        # TODO: put fields in arbitrary order specified in url_format (like $2 $3 $1 $4)
-        fmt = re.sub('\$\d+', '%s', self.url_format)
-        return fmt % (gg + (start, end))
+        url = self.url_format
+        for i in range(ng) :
+            url = re.sub('\$%d'%(i + 1), gg[i], url)
+        return url
 
     def get_linkouts(self, sequence_name, start, end) :
         links_json = []
