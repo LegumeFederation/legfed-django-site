@@ -6,7 +6,7 @@
         <img class="filer_image" src="{{ MEDIA_URL }}/{{ species.0.icon.file }}" width=100 height=100 style="object-fit: cover">
     {% endif %}
     </td><td style="padding: 5px">
-    <p><b><i>{{ species.0.genus_name }} {{ species.0.species_name }}</i> ({{ species.0.common_name }})</b></p>
+    <p><a id="{{ species.0.genus_name }}_{{ species.0.species_name }}"><b><i>{{ species.0.genus_name }} {{ species.0.species_name }}</i> ({{ species.0.common_name }})</b></a></p>
     {# unordered list of resources, by organization #}
     <ul>
     {% if species.1 %}
