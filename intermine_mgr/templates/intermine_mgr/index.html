@@ -4,23 +4,24 @@
 {% load filters %}
 
 {% block title %}
-LegFed: InterMines
+LegFed: InterMines: Search
 {% endblock %}
 
 {% block content %}
 
 <h1>InterMines</h1>
+<p>Search | <a href="templates">Templates</a></p>
 
 <div style="padding: 8px">
-<h4>Search</h4>
-<p>
-Enter names, identifiers, or keywords for genes, proteins, ontology terms, QTLs, <i>etc</i>.
-</p><p>
-Examples: Medtr2g036650, plasma membrane, sucrose synthase, Glyma.16G153700, Glyma.16G153700.1, BARCSOYSSR_04_1400, Seed yield 15-5
-</p><p>
-Keywords: <input type="text" id="keywords" size=100>
-</p>
-<button type="button" onclick="submitKeywords()">Search</button>
+  <h3>Search</h3>
+  <p>
+    Enter names, identifiers, or keywords for genes, proteins, ontology terms, QTLs, <i>etc</i>.
+  </p><p>
+    Examples: Medtr2g036650, plasma membrane, sucrose synthase, Glyma.16G153700, Glyma.16G153700.1, BARCSOYSSR_04_1400, Seed yield 15-5
+  </p><p>
+    Keywords: <input type="text" id="keywords" size=100>
+  </p>
+  <button type="button" onclick="submitKeywords()">Search</button>
 </div>
 
 {% if error_status_code %}
@@ -135,13 +136,13 @@ Keywords: <input type="text" id="keywords" size=100>
 <script>
 
 function submitKeywords() {
-    var keywords = document.getElementById("keywords").value.trim();
-    window.location = '?keywords=' + keywords;
+  var keywords = document.getElementById("keywords").value.trim();
+  window.location = '?keywords=' + keywords;
 }
 
 // Submit keywords if user pressed the Return key
 document.addEventListener('keypress', function(e) {
-    if (e.keyCode == 13) submitKeywords();
+  if (e.keyCode == 13) submitKeywords();
 });
 
 </script>

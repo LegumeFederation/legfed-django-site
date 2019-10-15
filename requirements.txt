@@ -33,3 +33,4 @@ django-taggit
 django-taggit-autosuggest
 django-sortedm2m
 django-admin-sortable2
+intermine

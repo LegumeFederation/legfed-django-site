@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+LegFed: InterMines: Templates
+{% endblock %}
+
+{% block content %}
+
+<h1>InterMines</h1>
+<p><a href="..">Search</a> | Templates</p>
+
+<table><tr valign="top">
+  <td>
+    <h3>Templates</h3>
+    {% for tv in existing_templates %}
+      <b>{{ tv.title }}</b>
+      <br>{{ tv.description }}
+      <ul>
+        {% for m in tv.mines %}
+          <li><a href="constraints/?q={{ tv.name }}__{{ m }}">{{ m }}</a>
+        {% endfor %}
+      </ul>
+    {% endfor %}
+  </td>
+  <td style="padding-left: 32px">
+    <h3>Filter Templates by Mine</h3>
+    {% for m in existing_mines %}
+      <p>
+        <input type="checkbox" id="check_{{ m }}" {% if user_mines is None or m in user_mines %}checked{% endif %}> {{ m }}
+      </p>
+    {% endfor %}
+    <p>
+      <input type="button" id="select_all_mines" value="Select All" onclick="setAllMines(true)">
+      <input type="button" id="deselect_all_mines" value="Deselect All" onclick="setAllMines(false)">
+    </p><p>
+      <input type="button" id="update_templates" value="&larr; Filter Templates" onclick="selectMines()">
+    </p>
+  </td>
+</tr></table>
+
+<p align="center">
+  <img src="/static/intermine_mgr/intermine-300x37.png" alt="InterMine logo"/>
+</p>
+
+<!-- ----------------------------------------------------------------------- -->
+<script>
+
+function setAllMines(b) {
+  var inputs = document.getElementsByTagName("input");
+  for (var i = 0; i < inputs.length; i++) {
+    if (inputs[i].type == "checkbox" && inputs[i].id.startsWith("check_")) {
+      inputs[i].checked = b;
+    }
+  }
+}
+
+function selectMines() {
+  var all_mines_selected = true;
+  var selected_mines = "";
+  var inputs = document.getElementsByTagName("input");
+  for (var i = 0; i < inputs.length; i++) {
+    if (inputs[i].type == "checkbox" && inputs[i].id.startsWith("check_")) {
+      if (inputs[i].checked) {
+        var mine = inputs[i].id.substring(6);
+        if (selected_mines != "") selected_mines += "+";
+	selected_mines += mine;
+      } else {
+	all_mines_selected = false;
+      }
+    }
+  }
+  if (selected_mines == "") {
+    alert("No mines selected");
+  } else if (all_mines_selected) {
+    window.location = ".";
+  } else {
+    window.location = "?mines=" + selected_mines;
+  }
+}
+
+</script>
+<!-- ----------------------------------------------------------------------- -->
+
+{% endblock %}
+

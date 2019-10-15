@@ -20,3 +20,8 @@ def cuttag(s, key) :
         tag = s[i0:i1]
     return s.replace(tag, '')
 
+# Convert ch to space
+@register.filter
+def spacify(s, ch) :
+    return s.replace(ch, ' ')
+

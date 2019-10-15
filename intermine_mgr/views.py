@@ -2,6 +2,7 @@ from django.shortcuts import render
 
 from .models import InterMine
 
+from intermine.webservice import Service
 import requests
 
 from legfedsite.private_settings import INTERMINE_CONTACT_EMAIL
@@ -100,10 +101,6 @@ sequence_categories = [
 def getSequenceLength(url) :
     return 0
 
-# Sort results by relevance
-def byRelevance(result) :
-    return result['relevance']
-
 # Create your views here.
 def index(request) :
     keywords = request.GET.get('keywords')
@@ -171,7 +168,14 @@ def index(request) :
             }
             return render(request, 'intermine_mgr/index.html', context)
 
-        im_total_hits = jj['totalHits']
+        try :
+            im_total_hits = jj['totalHits']
+        except :
+            # PhytoMine does not have a totalHits field! Sum over those in its Categories.
+            jjfcc = jj['facets']['Category']
+            im_total_hits = 0
+            for c in jjfcc :
+                im_total_hits += jjfcc[c]
         total_hits += im_total_hits
         # Aggregating facets is more complicated:
         facets['Mine'][im.name] = im_total_hits
@@ -260,7 +264,7 @@ def index(request) :
 
         # Now we have enough results from each mine to consider for the pth page.
         # Sort results by relevance and return up to RESULTS_PER_PAGE of them
-        pth_results = sorted(pth_results, key = byRelevance, reverse = True) # reverse = from_top
+        pth_results = sorted(pth_results, key = lambda r: r['relevance'], reverse = True) # reverse = from_top
         num_results = min(len(pth_results), RESULTS_PER_PAGE)
         results = pth_results[:num_results]
         # Discard already-used results from this page
@@ -288,4 +292,175 @@ def index(request) :
     }
 
     return render(request, 'intermine_mgr/index.html', context)
+
+def templates(request) :
+    # Determine available InterMines and associated templates
+    selected_mines = request.GET.get('mines')
+    if selected_mines is not None :
+        selected_mines = selected_mines.split('+')
+    existing_mines = []
+    existing_templates = {}
+    intermines = InterMine.objects.all()
+    for im in intermines :
+        existing_mines.append(im.name)
+        if not (selected_mines is None or im.name in selected_mines) :
+            continue
+        base_url = im.url.rstrip('/')
+        service = Service(base_url)
+        for t_name in service.templates :
+            t = service.get_template(t_name)
+            if t_name in existing_templates :
+                existing_templates[t_name]['mines'].append(im.name)
+            else :
+                existing_templates[t_name] = {
+                    'name': t.name,
+                    'title': t.title,
+                    'description': t.description,
+                    'mines': [ im.name ]
+                }
+    # Sort existing_templates properly, and convert it to a list
+    for t_name in existing_templates :
+        existing_templates[t_name]['mines'] = sorted(existing_templates[t_name]['mines'], key = lambda m: m.lower())
+    existing_templates = list(existing_templates.values())
+    existing_templates = sorted(existing_templates, key = lambda t: t['title'].lower())
+
+    context = {
+        'existing_mines': existing_mines,
+        'existing_templates': existing_templates,
+        'user_mines': selected_mines,
+    }
+    return render(request, 'intermine_mgr/templates.html', context)
+
+# Sort by a given sort tag
+def safeSort(s) :
+    if s is None :
+        # move None to last
+        return chr(255)
+    return s.lower()
+
+def template_constraints(request) :
+    mines_dict = {}
+    intermines = InterMine.objects.all()
+    for im in intermines :
+        mines_dict[im.name] = im
+
+    q = request.GET.get('q')
+    qq = q.split('__')
+    q_template = qq[0]
+    q_mine = mines_dict[qq[1]]
+    base_url = q_mine.url.rstrip('/')
+    q_service = Service(base_url)
+    selected_template = q_service.get_template(q_template)
+    nc = len(selected_template.constraints) # number of constraints in selected_template
+
+    constraints = []
+    kw_constraints = {}
+    base_filters_str = '?q=%s'%(q)
+    for i in range(nc) :
+        ch = chr(ord('A') + i)
+        operator = request.GET.get('op' + ch)
+        value = request.GET.get('value' + ch)
+        if operator is None :
+            break
+        stc_i = selected_template.constraints[i]
+        # constraints - return to template
+        constraints.append({ 'code': ch, 'path': stc_i.path, 'op': operator, 'value': value, 'edit': stc_i.editable })
+        if not stc_i.editable :
+            continue
+        # kw_constraints - submit to template query
+        kw_constraints[ch] = { 'op': operator, 'value': value }
+        base_filters_str += '&op%s=%s&value%s=%s'%(ch, operator, ch, value)
+
+    if len(constraints) == 0 :
+        # use default values from selected_template
+        for i in range(nc) :
+            ch = chr(ord('A') + i)
+            stc_i = selected_template.constraints[i]
+            constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable })
+        context = {
+            'user_q': q,
+            'user_template': selected_template,
+            'user_constraints': constraints,
+        }
+        return render(request, 'intermine_mgr/template_constraints.html', context)
+
+    # Paging
+    page = request.GET.get('page')
+    if page is None :
+        page = 1
+    else :
+        page = int(page)
+    results_per_page = request.GET.get('rows')
+    # Note that start indices are 0-based in the view, 1-based in the template
+    if results_per_page is None :
+        start = 0
+    else :
+        results_per_page = int(results_per_page)
+        start = (page - 1)*results_per_page
+
+    # Extract facet filters (only mines, for now)
+    facet_filters = {}
+    facet_filters_str = ''
+    mine = request.GET.get('Mine')
+    if mine :
+        facet_filters['Mine'] = mine
+        facet_filters_str += '&Mine=' + mine
+
+    facets = { 'Mine': {} }
+    total_hits = 0
+    results = []
+    for im in intermines :
+        if not (mine is None or mine == im.name) :
+            continue
+        base_url = im.url.rstrip('/')
+        service = Service(base_url)
+        try :
+            template = service.get_template(q_template)
+        except :
+            continue
+        # Execute the (possibly modified) query
+        rr = template.rows(**kw_constraints)
+        for row in rr :
+            rd = row.to_d()
+            rd.update({ 'mine': im.name })
+            results.append(rd)
+        im_total_hits = len(rr)
+        total_hits += im_total_hits
+        # Aggregating facets is more complicated:
+        facets['Mine'][im.name] = im_total_hits
+    # This yields the total hits and facet information.
+    # Remove any mines with no hits.
+    mm = list(facets['Mine'].keys())
+    for m in mm :
+        if facets['Mine'][m] == 0 :
+            del facets['Mine'][m]
+
+    sort_tag = selected_template.get_sort_order().sort_orders[0].path # TODO: sort by multiple columns?
+    results = sorted(results, key = lambda result: safeSort(result[sort_tag]))
+    if results_per_page is None :
+        end = total_hits
+        last_page = 1
+    else :
+        end = min(start + results_per_page, total_hits)
+        results = results[start:end]
+        last_page = (total_hits - 1) // results_per_page + 1
+        base_filters_str += '&rows=%d'%(results_per_page)
+    context = {
+        'user_q': q,
+        'user_template': selected_template,
+        'user_constraints': constraints,
+        'base_filters_str': base_filters_str,
+        'facet_filters': facet_filters,
+        'facet_filters_str': facet_filters_str,
+        'page': page,
+        'results_per_page': results_per_page,
+        'last_page': last_page,
+        'start_row': start + 1,
+        'end_row': end,
+        'num_rows': total_hits,
+        'results': results,
+        'facets': facets,
+    }
+
+    return render(request, 'intermine_mgr/template_constraints.html', context)
 

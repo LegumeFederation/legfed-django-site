@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load filters %}
+
+{% block title %}
+LegFed: InterMines: Template {{ user_template.name }}
+{% endblock %}
+
+{% block content %}
+
+<h1>InterMines: Template {{ user_template.title }}</h1>
+<p><a href="../..">Search</a> | <a href="..">Templates</a></p>
+
+{# Template query goes here. user_template is the selected template. #}
+{% if user_template is not None %}
+  <div style="padding: 8px; background-color: #ddeeff">
+    <h4>{{ user_template.title }}</h4>
+    <p>{{ user_template.description }}</p>
+    <input type="hidden" id="template_name_and_mine" value="{{ user_q }}">
+    {% for constraint in user_constraints %}
+      <p>
+        {% if constraint.edit %}
+          {{ constraint.path }}
+          <select id="operator_{{ constraint.code }}">
+            {% for op in user_template.constraints.0.OPS|dictsort:0 %}
+              <option {% if op == constraint.op %}selected{% endif %}>{{ op }}</option>
+            {% endfor %}
+          </select>
+          <input type="text" id="value_{{ constraint.code }}" size=64 value="{{ constraint.value }}">
+        {% else %}
+          <input type="hidden" id="operator_{{ constraint.code }}" value="{{ constraint.op }}">
+	  <input type="hidden" id="value_{{ constraint.code }}" value="{{ constraint.value }}">
+          {{ constraint.path }} {{ constraint.op }} {{ constraint.value }}	
+	{% endif %}
+      </p>
+    {% endfor %}
+    <button type="button" onclick="submitQuery()">Show Results</button>
+  </div>
+
+  {# Results go here #}
+  {% if results is None %}
+    <p></p>
+  {% elif results|length == 0 %}
+    <h4>No results for
+      {% for constraint in user_constraints %}
+        <br>{{ constraint.path }} {{ constraint.op }} {{ constraint.value }}
+      {% endfor %}
+    </h4>
+
+  {% else %}
+    <input type="hidden" id="facet_tags" value="{{ facet_filters_str }}">
+    {# Facets table #}
+    <table><tr>
+      <td style="vertical-align: top; padding: 8px">
+        {# fk is the category, fv is a dictionary of { value: hits } #}
+        {% for fk, fv in facets.items|dictsort:0 %}
+          {% if fk in facet_filters %}
+            <p><b>{{ fk }}: {{ facet_filters|dictget:fk }}</b></p>
+            {# Show All link removes only filter fk #}
+	    <p><a href="{{ base_filters_str }}{{ facet_filters_str|cuttag:fk }}">&lt;&lt; Show All</a></p>
+          {% elif fv|length > 0 %}
+            <p><b>Hits by {{ fk }}</b></p>
+            <ul style="list-style-position: inside; padding: 0">
+              {# To use dictsort on multiple fields, more important ones go later #}
+              {% for k, h in fv.items|dictsort:0|dictsortreversed:1 %}
+                {# facet_filters_str allows persisting previous filters #}
+                <li><a href="{{ base_filters_str }}{{ facet_filters_str }}&{{ fk }}={{ k }}" title="Click to show only '{{ k }}'">{{ k }}: {{ h }}</a>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endfor %}
+      </td>
+
+      {# Results table #}
+      <td style="padding: 8px">
+        <h4>Results {{ start_row }}-{{ end_row }} of {{ num_rows }} for
+        {% for constraint in user_constraints %}
+          <br>{{ constraint.path }} {{ constraint.op }} {{ constraint.value }}
+        {% endfor %}
+        </h4>
+        {% for fk, fv in facet_filters.items|dictsort:0 %}
+          <p align="center"><b>{{ fk }} restricted to {{ fv }}</b></p>
+        {% endfor %}
+        <p align="center">
+          Results per Page <select id="results_per_page" onchange="updateResultsPerPage()">
+	    <option {% if results_per_page == 10 %}selected{% endif %}>10</option>
+            <option {% if results_per_page == 25 %}selected{% endif %}>25</option>
+            <option {% if results_per_page == 50 %}selected{% endif %}>50</option>
+	    <option {% if results_per_page == 100 %}selected{% endif %}>100</option>
+	    <option {% if results_per_page is None %}selected{% endif %}>All</option>
+          </select> &nbsp; &nbsp;
+          {# First-Previous-Next-Last #}
+          {% if results_per_page is not None %}
+            {% if page is None or page == 1 %}
+              |&lt; First &nbsp; &nbsp;
+              &lt; Previous &nbsp; &nbsp;
+            {% else %}
+              <a href="{{ base_filters_str }}{{ facet_filters_str }}">|&lt; First</a> &nbsp; &nbsp;
+              <a href="{{ base_filters_str }}{{ facet_filters_str }}&page={{ page|add:"-1" }}">&lt; Previous</a> &nbsp; &nbsp;
+            {% endif %}
+	    Page <input type="number" id="page" style="width: 48px" value={{ page|default_if_none:1 }} min=1 max={{ last_page|default_if_none:1 }} onchange="updatePageNumber()">
+            {% if page == last_page %}
+              &nbsp; &nbsp; Next &gt;
+              &nbsp; &nbsp; Last &gt;|
+            {% else %}
+              &nbsp; &nbsp; <a href="{{ base_filters_str }}{{ facet_filters_str }}&page={{ page|add:"1" }}">Next &gt;</a>
+	      &nbsp; &nbsp; <a href="{{ base_filters_str }}{{ facet_filters_str }}&page={{ last_page }}">Last &gt;|</a>
+            {% endif %}
+          {% endif %}
+        </p>
+        <table>
+          <tr style="background-color: #dddddd">
+            {% for v in user_template.views %}
+              <th style="padding: 4px">{{ v|spacify:"." }}</th>
+            {% endfor %}
+	    <th style="padding: 4px">Mine</th>
+          </tr>
+          {% for r in results %}
+            <tr style="background-color: {% cycle '#ddffdd' '#ffffff' %}">
+	      {% for v in user_template.views %}
+                <td style="padding: 4px">{{ r|dictget:v }}</td>
+              {% endfor %}
+	      <td style="padding: 4px">{{ r.mine }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      </td>
+    </tr></table>
+
+  {% endif %}
+{% endif %}
+
+<p align="center">
+  <img src="/static/intermine_mgr/intermine-300x37.png" alt="InterMine logo"/>
+</p>
+
+<!-- ----------------------------------------------------------------------- -->
+<script>
+
+function getBaseTags() {
+  var q = document.getElementById("template_name_and_mine").value;
+  var base_tags = "?q=" + q;
+  var i = 0;
+  while (true) {
+    var ch = String.fromCharCode("A".charCodeAt() + i);
+    var op_tag = document.getElementById("operator_" + ch);
+    if (op_tag == null) break;
+    var operator = op_tag.value;
+    var value = document.getElementById("value_" + ch).value.trim();
+    base_tags += "&op" + ch + "=" + operator + "&value" + ch + "=" + value;
+    i++;
+  }
+  return base_tags;
+}
+
+function submitQuery(extra_tags) {
+  var base_tags = getBaseTags();
+  var facet_tags = document.getElementById("facet_tags");
+  facet_tags = (facet_tags == null ? "" : facet_tags.value);
+  var default_rows = 25;
+  if (typeof extra_tags === "undefined") {
+    window.location = base_tags + "&rows=" + default_rows + facet_tags;
+  } else {
+    window.location = base_tags + facet_tags + extra_tags;
+  }
+}
+
+function updateResultsPerPage(page_tag) {
+  var rpp = document.getElementById("results_per_page").value;
+  var rows_tag;
+  if (rpp == "All") {
+    rows_tag = "";
+  } else {
+    rows_tag = "&rows=" + parseInt(rpp);
+  }
+  if (typeof page_tag === "undefined") page_tag = "";
+  submitQuery(rows_tag + page_tag);
+}
+
+function updatePageNumber() {
+  var page = document.getElementById("page").value;
+  page_tag = (page == 1 ? "" : "&page=" + page);
+  updateResultsPerPage(page_tag);
+}
+
+</script>
+<!-- ----------------------------------------------------------------------- -->
+
+{% endblock %}
+
