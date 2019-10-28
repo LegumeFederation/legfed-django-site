@@ -64,7 +64,7 @@ function selectMines() {
     if (inputs[i].type == "checkbox" && inputs[i].id.startsWith("check_")) {
       if (inputs[i].checked) {
         var mine = inputs[i].id.substring(6);
-        if (selected_mines != "") selected_mines += "+";
+        if (selected_mines != "") selected_mines += "%2B"; // GET converts + to space, so use %2B
 	selected_mines += mine;
       } else {
 	all_mines_selected = false;
