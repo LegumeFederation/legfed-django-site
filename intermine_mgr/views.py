@@ -378,7 +378,11 @@ def template_constraints(request) :
         for i in range(nc) :
             ch = chr(ord('A') + i)
             stc_i = selected_template.constraints[i]
-            constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable })
+            # Ignore constraints missing these items, for now
+            try :
+                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable })
+            except :
+                pass
         context = {
             'user_q': q,
             'user_mine': qq[1],
@@ -419,18 +423,19 @@ def template_constraints(request) :
         service = Service(base_url)
         try :
             template = service.get_template(q_template)
+            # Execute the (possibly modified) query
+            rr = template.rows(**kw_constraints)
+            for row in rr :
+                rd = row.to_d()
+                rd.update({ 'mine': im.name })
+                results.append(rd)
+            im_total_hits = len(rr)
+            total_hits += im_total_hits
+            # Aggregating facets is more complicated:
+            facets['Mine'][im.name] = im_total_hits
         except :
+            # For example, if the constraints do not apply to the template for this mine
             continue
-        # Execute the (possibly modified) query
-        rr = template.rows(**kw_constraints)
-        for row in rr :
-            rd = row.to_d()
-            rd.update({ 'mine': im.name })
-            results.append(rd)
-        im_total_hits = len(rr)
-        total_hits += im_total_hits
-        # Aggregating facets is more complicated:
-        facets['Mine'][im.name] = im_total_hits
     # This yields the total hits and facet information.
     # Remove any mines with no hits.
     mm = list(facets['Mine'].keys())
