@@ -381,6 +381,7 @@ def template_constraints(request) :
             constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable })
         context = {
             'user_q': q,
+            'user_mine': qq[1],
             'user_template': selected_template,
             'user_constraints': constraints,
         }
@@ -449,6 +450,7 @@ def template_constraints(request) :
         base_filters_str += '&rows=%d'%(results_per_page)
     context = {
         'user_q': q,
+        'user_mine': qq[1],
         'user_template': selected_template,
         'user_constraints': constraints,
         'base_filters_str': base_filters_str,

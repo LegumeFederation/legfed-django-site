@@ -4,12 +4,13 @@
 {% load filters %}
 
 {% block title %}
-LegFed: InterMines: Template {{ user_template.name }}
+LegFed: InterMines: {{ user_template.title }}
 {% endblock %}
 
 {% block content %}
 
-<h1>InterMines: Template {{ user_template.title }}</h1>
+<h1>InterMines: {{ user_template.title }}</h1>
+<p><small><i>Template from {{ user_mine }}</i></small></p>
 <p><a href="../..">Search</a> | <a href="..">Templates</a></p>
 
 {# Template query goes here. user_template is the selected template. #}
