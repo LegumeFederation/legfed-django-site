@@ -331,12 +331,14 @@ def templates(request) :
     }
     return render(request, 'intermine_mgr/templates.html', context)
 
-# Sort by a given sort tag
-def safeSort(s) :
-    if s is None :
-        # move None to last
+# Sort results (r) by a given sort tag (s)
+def safeSort(r, s) :
+    try :
+        rs = r[s]
+        return rs.lower()
+    except :
+        # move to last
         return chr(255)
-    return s.lower()
 
 def template_constraints(request) :
     mines_dict = {}
@@ -436,7 +438,7 @@ def template_constraints(request) :
             del facets['Mine'][m]
 
     sort_tag = selected_template.get_sort_order().sort_orders[0].path # TODO: sort by multiple columns?
-    results = sorted(results, key = lambda result: safeSort(result[sort_tag]))
+    results = sorted(results, key = lambda result: safeSort(result, sort_tag))
     if results_per_page is None :
         end = total_hits
         last_page = 1
