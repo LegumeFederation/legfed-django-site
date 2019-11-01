@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 
 from .models import GeneLinkout, GenomicRegionLinkout
@@ -14,7 +15,7 @@ def index(request) :
         context = {}
     return render(request, 'linkout_mgr/index.html', context)
 
-def gene_context(request) :
+def gene_context(request, as_json = False) :
     gene = request.GET.get('gene')
 
     # Aggregate the results
@@ -33,15 +34,20 @@ def gene_context(request) :
             hh.append(href)
             tt.append(j['text'])
 
-    aggregated_links = zip(hh, tt)
-    context = {
-        'linkout_type': 'gene',
-        'label': gene,
-        'aggregated_links': aggregated_links,
-    }
+    if as_json :
+        context = []
+        for i in range(len(hh)) :
+            context.append({ 'href': hh[i], 'text': tt[i] })
+    else :
+        aggregated_links = zip(hh, tt)
+        context = {
+            'linkout_type': 'gene',
+            'label': gene,
+            'aggregated_links': aggregated_links,
+        }
     return context
 
-def genomic_region_context(request) :
+def genomic_region_context(request, as_json = False) :
     sequence_name = request.GET.get('seqname')
     start_pos = request.GET.get('start')
     end_pos = request.GET.get('end')
@@ -62,13 +68,26 @@ def genomic_region_context(request) :
             hh.append(href)
             tt.append(j['text'])
 
-    aggregated_links = zip(hh, tt)
-    context = {
-        'linkout_type': 'genomic region',
-        'label': '%s %s-%s'%(sequence_name, start_pos, end_pos),
-        'aggregated_links': aggregated_links,
-    }
+    if as_json :
+        context = []
+        for i in range(len(hh)) :
+            context.append({ 'href': hh[i], 'text': tt[i] })
+    else :
+        aggregated_links = zip(hh, tt)
+        context = {
+            'linkout_type': 'genomic region',
+            'label': '%s %s-%s'%(sequence_name, start_pos, end_pos),
+            'aggregated_links': aggregated_links,
+        }
     return context
+
+def service(request) :
+    if request.GET.get('gene') is not None :
+        return JsonResponse(gene_context(request, True), safe = False)
+    elif not (request.GET.get('seqname') is None or request.GET.get('start') is None or request.GET.get('end') is None) :
+        return JsonResponse(genomic_region_context(request, True), safe = False)
+    else :
+        return JsonResponse({ 'error': 'Invalid linkout request' })
 
 def test(request) :
     linkout_type = display_linkout_type = ''
