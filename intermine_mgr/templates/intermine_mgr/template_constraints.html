@@ -29,6 +29,10 @@ LegFed: InterMines: {{ user_template.title }}
             {% endfor %}
           </select>
           <input type="text" id="value_{{ constraint.code }}" size=64 value="{{ constraint.value }}" {% if constraint.gene_op is not None %}readOnly{% endif %}>
+	  {% if constraint.value2 is not None %}
+	    for Organism
+	    <input type="text" id="value2_{{ constraint.code }}" size=64 value="{{ constraint.value2 }}" {% if constraint.gene_op is not None %}readOnly{% endif %}>
+	  {% endif %}
 	  {% if gene_lists|length > 0 and constraint.gene_related %}
 	    <p style="padding-left: 24px">
 	      <input type="checkbox" id="gene_checkbox_{{ constraint.code }}" {% if constraint.gene_op is not None %}checked{% endif %} onchange="toggleGeneCheckbox('{{ constraint.code }}')">
@@ -49,6 +53,10 @@ LegFed: InterMines: {{ user_template.title }}
           <input type="hidden" id="operator_{{ constraint.code }}" value="{{ constraint.op }}">
           <input type="hidden" id="value_{{ constraint.code }}" value="{{ constraint.value }}">
           {{ constraint.path }} {{ constraint.op }} {{ constraint.value }}
+	  {% if constraint.value2 is not None %}
+	    <input type="hidden" id="value2_{{ constraint.code }}" value="{{ constraint.value2 }}">
+	    for Organism {{ constraint.value2 }}
+	  {% endif %}
 	{% endif %}
       </p>
     {% endfor %}
@@ -64,6 +72,9 @@ LegFed: InterMines: {{ user_template.title }}
         <br>
         {% if constraint.op is not None and constraint.gene_op is None %}
           {{ constraint.path }} {{ constraint.op }} {{ constraint.value }}
+	  {% if constraint.value2 is not None %}
+	    for Organism {{ constraint.value2 }}
+	  {% endif %}
         {% elif constraint.gene_op is not None %}
           Gene {{ constraint.gene_op }} {{ constraint.gene_value }}
         {% endif %}
@@ -101,6 +112,9 @@ LegFed: InterMines: {{ user_template.title }}
             <br>
             {% if constraint.op is not None and constraint.gene_op is None %}
               {{ constraint.path }} {{ constraint.op }} {{ constraint.value }}
+	      {% if constraint.value2 is not None %}
+	        for Organism {{ constraint.value2 }}
+              {% endif %}
             {% elif constraint.gene_op is not None %}
               Gene {{ constraint.gene_op }} {{ constraint.gene_value }}
             {% endif %}
@@ -187,6 +201,10 @@ function getBaseTags() {
       operator = op_tag.value;
       value = document.getElementById("value_" + ch).value.trim();
       base_tags += "&op" + ch + "=" + operator + "&value" + ch + "=" + value;
+      value2_tag = document.getElementById("value2_" + ch);
+      if (value2_tag != null) {
+        base_tags += "&value2" + ch + "=" + value2_tag.value.trim();
+      }
     }
     i++;
   }
@@ -229,6 +247,10 @@ function toggleGeneCheckbox(code) {
   document.getElementById("gene_lists_" + code).disabled = !chk;
   document.getElementById("operator_" + code).disabled = chk;
   document.getElementById("value_" + code).readOnly = chk;
+  value2_tag = document.getElementById("value2_" + code);
+  if (value2_tag != null) {
+    value2_tag.readOnly = chk;
+  }
 }
 
 </script>

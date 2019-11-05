@@ -372,9 +372,17 @@ def template_constraints(request) :
         if operator is not None :
             # regular constraint
             value = request.GET.get('value' + ch)
-            constraints.append({ 'code': ch, 'path': stc_i.path, 'op': operator, 'value': value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
+            value2 = request.GET.get('value2' + ch)
+            if value2 is None :
+                # binary constraint
+                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': operator, 'value': value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
+            else :
+                # ternary constraint
+                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': operator, 'value': value, 'value2': value2, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
             if stc_i.editable :
                 base_filters_str += '&op%s=%s&value%s=%s'%(ch, operator, ch, value)
+                if value2 is not None :
+                    base_filters_str += '&value2%s=%s'%(ch, value2)
         else :
             operator = request.GET.get('gene_op' + ch)
             if operator is not None :
@@ -388,15 +396,21 @@ def template_constraints(request) :
         if stc_i.editable :
             # kw_constraints - submit to template query
             kw_constraints[ch] = { 'op': operator, 'value': value }
+            if value2 is not None :
+                kw_constraints[ch]['extra_value'] = value2
 
     if len(constraints) == 0 :
         # use default values from selected_template
         for i in range(nc) :
             ch = chr(ord('A') + i)
             stc_i = selected_template.constraints[i]
+            stc_i_dict = stc_i.to_dict()
             # Ignore constraints missing these items, for now
             try :
-                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
+                if 'extraValue' not in stc_i_dict :
+                    constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
+                else :
+                    constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'value2': stc_i_dict['extraValue'], 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
             except :
                 continue
         context = {
