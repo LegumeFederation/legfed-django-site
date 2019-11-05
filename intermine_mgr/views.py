@@ -340,6 +340,10 @@ def safeSort(r, s) :
         # move to last
         return chr(255)
 
+def pathIsGeneRelated(path) :
+    # also Gene.flankingRegions.direction (for SoyMine)?
+    return path in [ 'Gene', 'Gene.primaryIdentifier', 'Gene.description' ]
+
 def template_constraints(request) :
     mines_dict = {}
     intermines = InterMine.objects.all()
@@ -357,21 +361,33 @@ def template_constraints(request) :
 
     constraints = []
     kw_constraints = {}
+    gene_lists = q_service.get_all_list_names()
+    gene_lists = [ l for l in gene_lists if q_service.get_list(l).list_type == 'Gene' ]
     base_filters_str = '?q=%s'%(q)
     for i in range(nc) :
-        ch = chr(ord('A') + i)
-        operator = request.GET.get('op' + ch)
-        value = request.GET.get('value' + ch)
-        if operator is None :
-            break
         stc_i = selected_template.constraints[i]
+        ch = chr(ord('A') + i)
         # constraints - return to template
-        constraints.append({ 'code': ch, 'path': stc_i.path, 'op': operator, 'value': value, 'edit': stc_i.editable })
-        if not stc_i.editable :
-            continue
-        # kw_constraints - submit to template query
-        kw_constraints[ch] = { 'op': operator, 'value': value }
-        base_filters_str += '&op%s=%s&value%s=%s'%(ch, operator, ch, value)
+        operator = request.GET.get('op' + ch)
+        if operator is not None :
+            # regular constraint
+            value = request.GET.get('value' + ch)
+            constraints.append({ 'code': ch, 'path': stc_i.path, 'op': operator, 'value': value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
+            if stc_i.editable :
+                base_filters_str += '&op%s=%s&value%s=%s'%(ch, operator, ch, value)
+        else :
+            operator = request.GET.get('gene_op' + ch)
+            if operator is not None :
+                # gene list-based constraint
+                value = request.GET.get('gene_value' + ch)
+                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'gene_op': operator, 'gene_value': value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
+                if stc_i.editable :
+                    base_filters_str += '&op%s=%s&value%s=%s&gene_op%s=%s&gene_value%s=%s'%(ch, stc_i.op, ch, stc_i.value, ch, operator, ch, value)
+            else :
+                break
+        if stc_i.editable :
+            # kw_constraints - submit to template query
+            kw_constraints[ch] = { 'op': operator, 'value': value }
 
     if len(constraints) == 0 :
         # use default values from selected_template
@@ -380,14 +396,15 @@ def template_constraints(request) :
             stc_i = selected_template.constraints[i]
             # Ignore constraints missing these items, for now
             try :
-                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable })
+                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
             except :
-                pass
+                continue
         context = {
             'user_q': q,
             'user_mine': qq[1],
             'user_template': selected_template,
             'user_constraints': constraints,
+            'gene_lists': gene_lists,
         }
         return render(request, 'intermine_mgr/template_constraints.html', context)
 
@@ -458,6 +475,7 @@ def template_constraints(request) :
         'user_mine': qq[1],
         'user_template': selected_template,
         'user_constraints': constraints,
+        'gene_lists': gene_lists,
         'base_filters_str': base_filters_str,
         'facet_filters': facet_filters,
         'facet_filters_str': facet_filters_str,
