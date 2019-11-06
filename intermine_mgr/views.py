@@ -364,55 +364,63 @@ def template_constraints(request) :
     gene_lists = q_service.get_all_list_names()
     gene_lists = [ l for l in gene_lists if q_service.get_list(l).list_type == 'Gene' ]
     base_filters_str = '?q=%s'%(q)
+    use_default_constraints = False
     for i in range(nc) :
         stc_i = selected_template.constraints[i]
+        stc_i_dict = stc_i.to_dict()
+        is_gene_related = pathIsGeneRelated(stc_i.path)
         ch = chr(ord('A') + i)
         # constraints - return to template
+        constraint = { 'code': ch, 'path': stc_i.path, 'edit': stc_i.editable, 'gene_related': is_gene_related }
         operator = request.GET.get('op' + ch)
+        value = request.GET.get('value' + ch)
+        value2 = request.GET.get('value2' + ch)
         if operator is not None :
-            # regular constraint
-            value = request.GET.get('value' + ch)
-            value2 = request.GET.get('value2' + ch)
-            if value2 is None :
-                # binary constraint
-                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': operator, 'value': value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
-            else :
+            # regular (binary) constraint
+            constraint['op'] = operator
+            constraint['value'] = value
+            if value2 is not None :
                 # ternary constraint
-                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': operator, 'value': value, 'value2': value2, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
+                constraint['value2'] = value2
+            constraints.append(constraint)
             if stc_i.editable :
                 base_filters_str += '&op%s=%s&value%s=%s'%(ch, operator, ch, value)
                 if value2 is not None :
                     base_filters_str += '&value2%s=%s'%(ch, value2)
         else :
             operator = request.GET.get('gene_op' + ch)
+            value = request.GET.get('gene_value' + ch)
             if operator is not None :
                 # gene list-based constraint
-                value = request.GET.get('gene_value' + ch)
-                constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'gene_op': operator, 'gene_value': value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
+                constraint['gene_op'] = operator
+                constraint['gene_value'] = value
+                constraint['op'] = stc_i.op
+                constraint['value'] = stc_i.value
+                if 'extraValue' in stc_i_dict :
+                    constraint['value2'] = stc_i_dict['extraValue']
+                constraints.append(constraint)
                 if stc_i.editable :
                     base_filters_str += '&op%s=%s&value%s=%s&gene_op%s=%s&gene_value%s=%s'%(ch, stc_i.op, ch, stc_i.value, ch, operator, ch, value)
             else :
-                break
+                # user submitted no constraints (yet), so use default values from selected template
+                use_default_constraints = True
+                try :
+                    constraint['op'] = stc_i.op
+                    constraint['value'] = stc_i.value
+                    if 'extraValue' in stc_i_dict :
+                        constraint['value2'] = stc_i_dict['extraValue']
+                    constraints.append(constraint)
+                except :
+                    # ignore if any fields are missing
+                    pass
+                continue # so as not to submit default values to template query
         if stc_i.editable :
             # kw_constraints - submit to template query
             kw_constraints[ch] = { 'op': operator, 'value': value }
             if value2 is not None :
                 kw_constraints[ch]['extra_value'] = value2
 
-    if len(constraints) == 0 :
-        # use default values from selected_template
-        for i in range(nc) :
-            ch = chr(ord('A') + i)
-            stc_i = selected_template.constraints[i]
-            stc_i_dict = stc_i.to_dict()
-            # Ignore constraints missing these items, for now
-            try :
-                if 'extraValue' not in stc_i_dict :
-                    constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
-                else :
-                    constraints.append({ 'code': ch, 'path': stc_i.path, 'op': stc_i.op, 'value': stc_i.value, 'value2': stc_i_dict['extraValue'], 'edit': stc_i.editable, 'gene_related': pathIsGeneRelated(stc_i.path) })
-            except :
-                continue
+    if use_default_constraints :
         context = {
             'user_q': q,
             'user_mine': qq[1],
