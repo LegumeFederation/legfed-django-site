@@ -97,6 +97,39 @@ sequence_categories = [
   'MRNA', 'Protein', 'Supercontig', 'SyntenicRegion', 'TRNA'
 ]
 
+# Construct value lists for (certain) template constraints
+value_list_paths = [
+  'Gene.chromosome.primaryIdentifier',
+  'Gene.expressionValues.sample.description',
+  'Gene.expressionValues.sample.primaryIdentifier',
+  'Gene.flankingRegions.direction',
+  'Gene.organism.name', 'Gene.organism.shortName',
+  'GeneticMarker.chromosome.primaryIdentifier',
+  'GWAS.results.phenotype.primaryIdentifier',
+  'SyntenicRegion.chromosome.primaryIdentifier'
+]
+value_list_name_paths = [ 'Gene.organism.name', 'Gene.organism.shortName' ]
+
+def getValueList(service, key) :
+    if key not in value_list_paths :
+        return None
+    if key == 'GeneticMarker.chromosome.primaryIdentifier' :
+        # workaround for LegumeMine (and others?),
+        # original key does not return all of the desired chromosomes
+        key = 'Gene.chromosome.primaryIdentifier'
+    try :
+        query = service.new_query(key)
+        rset = set()
+        for r in query.rows() :
+            rset.add(r[0])
+        rset.discard(None)
+        rlist = sorted(list(rset), key = lambda s: s.lower())
+        if key in value_list_name_paths :
+            rlist = ['Any'] + rlist
+        return rlist
+    except :
+        return None
+
 # TODO: (currently low priority) Get sequence length from a remote FASTA file or URL
 def getSequenceLength(url) :
     return 0
@@ -375,6 +408,11 @@ def template_constraints(request) :
         operator = request.GET.get('op' + ch)
         value = request.GET.get('value' + ch)
         value2 = request.GET.get('value2' + ch)
+        value_list = getValueList(q_service, stc_i.path)
+        if value_list is not None :
+            constraint['value_list'] = value_list
+        # organism_list is for the value2 (extraValue, extra_value) field in a ternary constraint
+        organism_list = getValueList(q_service, 'Gene.organism.shortName')
         if operator is not None :
             # regular (binary) constraint
             constraint['op'] = operator
@@ -382,6 +420,8 @@ def template_constraints(request) :
             if value2 is not None :
                 # ternary constraint
                 constraint['value2'] = value2
+                if organism_list is not None :
+                    constraint['value_list'] = organism_list
             constraints.append(constraint)
             if stc_i.editable :
                 base_filters_str += '&op%s=%s&value%s=%s'%(ch, operator, ch, value)
@@ -409,6 +449,8 @@ def template_constraints(request) :
                     constraint['value'] = stc_i.value
                     if 'extraValue' in stc_i_dict :
                         constraint['value2'] = stc_i_dict['extraValue']
+                        if organism_list is not None :
+                            constraint['value_list'] = organism_list
                     constraints.append(constraint)
                 except :
                     # ignore if any fields are missing
@@ -417,7 +459,7 @@ def template_constraints(request) :
         if stc_i.editable :
             # kw_constraints - submit to template query
             kw_constraints[ch] = { 'op': operator, 'value': value }
-            if value2 is not None :
+            if value2 not in [ None, 'Any' ] :
                 kw_constraints[ch]['extra_value'] = value2
 
     if use_default_constraints :

@@ -28,10 +28,26 @@ LegFed: InterMines: {{ user_template.title }}
               <option {% if op == constraint.op %}selected{% endif %}>{{ op }}</option>
             {% endfor %}
           </select>
-          <input type="text" id="value_{{ constraint.code }}" size=64 value="{{ constraint.value }}" {% if constraint.gene_op is not None %}readOnly{% endif %}>
+	  {% if constraint.value_list is not None and constraint.value2 is None %}
+            <select id="value_{{ constraint.code }}" {% if constraint.gene_op is not None %}disabled{% endif %}>
+              {% for val in constraint.value_list %}
+                <option {% if val == constraint.value %}selected{% endif %}>{{ val }}</option>
+              {% endfor %}
+            </select>
+	  {% else %}
+            <input type="text" id="value_{{ constraint.code }}" size=64 value="{{ constraint.value }}" {% if constraint.gene_op is not None %}readOnly{% endif %}>
+	  {% endif %}
 	  {% if constraint.value2 is not None %}
 	    for Organism
-	    <input type="text" id="value2_{{ constraint.code }}" size=64 value="{{ constraint.value2 }}" {% if constraint.gene_op is not None %}readOnly{% endif %}>
+            {% if constraint.value_list is not None %}
+              <select id="value2_{{ constraint.code }}" {% if constraint.gene_op is not None %}disabled{% endif %}>
+                {% for val in constraint.value_list %}
+                  <option {% if val == constraint.value2 %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <input type="text" id="value2_{{ constraint.code }}" size=64 value="{{ constraint.value2 }}" {% if constraint.gene_op is not None %}readOnly{% endif %}>
+	    {% endif %}
 	  {% endif %}
 	  {% if gene_lists|length > 0 and constraint.gene_related %}
 	    <p style="padding-left: 24px">
