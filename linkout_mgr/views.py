@@ -95,6 +95,7 @@ def test(request) :
         linkout_type = request.GET.get('linkout_type')
 
     nt = 0
+    inconclusive_tests = []
     failed_tests = []
     services = []
     if linkout_type == 'gene' :
@@ -106,13 +107,16 @@ def test(request) :
 
     for service in services :
         jj = service.get_example_linkouts()
-        # The following assumes that each related linkout has the same issues,
-        # so we need only display the first one (j0)
-        j0 = jj[0]
-        if 'error' in j0 :
-            failed_tests += [ j0 ] #[(j0['text'], j0['error'], j0['href'])]
+        if len(jj) == 0 :
+            inconclusive_tests += [ service.name ]
+        else :
+            # The following assumes that each related linkout has the same issues,
+            # so we need only display the first one (j0)
+            j0 = jj[0]
+            if 'error' in j0 :
+                failed_tests += [ j0 ] #[(j0['text'], j0['error'], j0['href'])]
         nt += 1
-    np = nt - len(failed_tests)
+    np = nt - len(failed_tests) - len(inconclusive_tests)
     pct = 0
     if nt > 0 :
         pct = np*100.0/nt
@@ -122,6 +126,7 @@ def test(request) :
         'num_tests_passed': np,
         'num_tests_total': nt,
         'pct_tests_passed': '%2.1f'%(pct),
+        'inconclusive_tests_list': inconclusive_tests,
         'failed_tests_list': failed_tests,
     }
     return render(request, 'linkout_mgr/test.html', context)

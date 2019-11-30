@@ -36,6 +36,17 @@ Failed:
 </ol>
 {% endif %}
 
+{% if inconclusive_tests_list|length > 0 %}
+<p>
+Inconclusive: (example returned no linkouts)
+</p>
+<ol style="list-style-position: outside; padding-left: 1em">
+{% for service in inconclusive_tests_list %}
+  <li style="margin-bottom: 10px; color: #FF8000">{{ service }}
+{% endfor %}
+</ol>
+{% endif %}
+
 {% endif %}
 
 <!-- ----------------------------------------------------------------------- -->
