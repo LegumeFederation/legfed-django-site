@@ -1,0 +1,13 @@
+<dl>
+{% for job in open_jobs_list %}
+  <dt>
+    <a href="{{ job.url }}" target="_blank">{{ job.job_title }}</a>, {{ job.institution }}
+    <br>{{ job.brief_description }}
+    <br><i>Expires: {{ job.expiration_date }}</i>
+  </dt>
+  <dt>&nbsp;
+{% empty %}
+  <p>No positions currently open.</p>
+{% endfor %}
+</dl>
+

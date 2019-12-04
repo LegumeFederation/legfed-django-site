@@ -24,6 +24,7 @@ urlpatterns += i18n_patterns(
     url(r'^announcements/', include('announcements.urls')),
     url(r'^linkout_mgr/', include('linkout_mgr.urls')),
     url(r'^intermine_mgr/', include('intermine_mgr.urls')),
+    url(r'^jobs/', include('jobs.urls')),
     url(r'^admin/', include(admin.site.urls)),  # NOQA
     url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
     url(r'^plugin_forms/', include('cmsplugin_form_handler.urls', namespace='cmsplugin_form_handler')),
