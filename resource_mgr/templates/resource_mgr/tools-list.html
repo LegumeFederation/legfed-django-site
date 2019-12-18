@@ -19,6 +19,7 @@
 <h3>Relations between Tools</h3>
 <p>Species:
 <select id="speciesMenu" onchange="drawGraph()">
+    <option>Any</option>
     {% for species in species_list %}
         <option>{{ species.genus_name }} {{ species.species_name }}</option>
     {% endfor %}
@@ -69,7 +70,7 @@
       data.links.forEach(function(d) {
         hhLinks[d.name] = false;
         dss = d.species.split(',');
-        if (d.species === '' || dss.indexOf(s) >= 0) {
+        if (s === 'Any' || d.species === '' || dss.indexOf(s) >= 0) {
           hhNodes[d.source] = true;
           hhNodes[d.target] = true;
           hhLinks[d.name] = true;
@@ -165,17 +166,18 @@
 
       pathInvis.exit().remove();
 
-      var pathLabel = svg.selectAll(".pathLabel")
+      var pathLabel = svg.selectAll("path.label")
         .data(force.links());
 
       pathLabel.enter().append("g").append("svg:text")
-        .attr("class", "pathLabel")
+        .attr("class", "label")
         .append("svg:textPath")
           .attr("startOffset", "50%")
           .attr("text-anchor", "middle")
           .attr("xlink:href", function(d) { return "#invis_" + d.source.id + "-" + d.name + "-" + d.target.id; })
           .style("fill", "#cccccc")
-          .style("font-size", 10)
+          .style("font-size", "12px")
+          .style("font-weight", "normal")
           .text(function(d) { return d.name; });
 
       var node = svg.selectAll("g.node")
