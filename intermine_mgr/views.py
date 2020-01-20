@@ -386,7 +386,8 @@ def template_constraints(request) :
     q = request.GET.get('q')
     qq = q.split('__')
     q_template = qq[0]
-    q_mine = mines_dict[qq[1]]
+    q_mine_name = qq[1]
+    q_mine = mines_dict[q_mine_name]
     base_url = q_mine.url.rstrip('/')
     q_service = Service(base_url)
     selected_template = q_service.get_template(q_template)
@@ -413,7 +414,21 @@ def template_constraints(request) :
             constraint['value_list'] = value_list
         # organism_list is for the value2 (extraValue, extra_value) field in a ternary constraint
         organism_list = getValueList(q_service, 'Gene.organism.shortName')
-        if operator is not None :
+        gene_operator = request.GET.get('gene_op' + ch)
+        gene_value = request.GET.get('gene_value' + ch)
+        if gene_operator is not None :
+            # gene list-based constraint
+            # (set operator and value for use in kw_constraints below)
+            constraint['gene_op'] = operator = gene_operator
+            constraint['gene_value'] = value = gene_value
+            constraint['op'] = stc_i.op
+            constraint['value'] = stc_i.value
+            if 'extraValue' in stc_i_dict :
+                constraint['value2'] = stc_i_dict['extraValue']
+            constraints.append(constraint)
+            if stc_i.editable :
+                base_filters_str += '&op%s=%s&value%s=%s&gene_op%s=%s&gene_value%s=%s'%(ch, stc_i.op, ch, stc_i.value, ch, gene_operator, ch, gene_value)
+        elif operator is not None :
             # regular (binary) constraint
             constraint['op'] = operator
             constraint['value'] = value
@@ -428,34 +443,21 @@ def template_constraints(request) :
                 if value2 is not None :
                     base_filters_str += '&value2%s=%s'%(ch, value2)
         else :
-            operator = request.GET.get('gene_op' + ch)
-            value = request.GET.get('gene_value' + ch)
-            if operator is not None :
-                # gene list-based constraint
-                constraint['gene_op'] = operator
-                constraint['gene_value'] = value
+            # user submitted no constraints (yet), so use default values from selected template
+            use_default_constraints = True
+            try :
                 constraint['op'] = stc_i.op
                 constraint['value'] = stc_i.value
                 if 'extraValue' in stc_i_dict :
                     constraint['value2'] = stc_i_dict['extraValue']
+                    if organism_list is not None :
+                        constraint['value_list'] = organism_list
                 constraints.append(constraint)
-                if stc_i.editable :
-                    base_filters_str += '&op%s=%s&value%s=%s&gene_op%s=%s&gene_value%s=%s'%(ch, stc_i.op, ch, stc_i.value, ch, operator, ch, value)
-            else :
-                # user submitted no constraints (yet), so use default values from selected template
-                use_default_constraints = True
-                try :
-                    constraint['op'] = stc_i.op
-                    constraint['value'] = stc_i.value
-                    if 'extraValue' in stc_i_dict :
-                        constraint['value2'] = stc_i_dict['extraValue']
-                        if organism_list is not None :
-                            constraint['value_list'] = organism_list
-                    constraints.append(constraint)
-                except :
-                    # ignore if any fields are missing
-                    pass
-                continue # so as not to submit default values to template query
+            except :
+                # ignore if any fields are missing
+                pass
+            continue # so as not to submit default values to template query
+
         if stc_i.editable :
             # kw_constraints - submit to template query
             kw_constraints[ch] = { 'op': operator, 'value': value }
@@ -465,7 +467,7 @@ def template_constraints(request) :
     if use_default_constraints :
         context = {
             'user_q': q,
-            'user_mine': qq[1],
+            'user_mine': q_mine_name,
             'user_template': selected_template,
             'user_constraints': constraints,
             'gene_lists': gene_lists,
@@ -536,7 +538,7 @@ def template_constraints(request) :
         base_filters_str += '&rows=%d'%(results_per_page)
     context = {
         'user_q': q,
-        'user_mine': qq[1],
+        'user_mine': q_mine_name,
         'user_template': selected_template,
         'user_constraints': constraints,
         'gene_lists': gene_lists,
