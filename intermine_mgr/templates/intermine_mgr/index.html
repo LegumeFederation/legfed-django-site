@@ -111,8 +111,8 @@ LegFed: InterMines: Search
 		  {# FASTA and BLAST links (associated with eventual length field) #}
                   {% if r.fasta_url %}
 		    <tr><td>
-		      <a href="{{ r.fasta_url }}" target="_blank" alt="FASTA"><img src="/static/intermine_mgr/fasta.gif"></a>
-                      &bull; <a href="{{ r.blast_url }}" target="_blank" alt="BLAST"><img src="/static/intermine_mgr/blast.png"></a>
+		      <a href="{{ r.fasta_url }}" target="_blank"><img src="/static/intermine_mgr/fasta.gif" alt="FASTA"></a>
+                      &bull; <a href="{{ r.blast_url }}" target="_blank"><img src="/static/intermine_mgr/blast.png" alt="BLAST"></a>
 		    </td></tr>
                   {% endif %}
                 </table>
