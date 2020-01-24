@@ -20,6 +20,9 @@ class Species(models.Model) :
             abbr = '%s%s'%(self.genus_name[0:3], self.species_name[0:2])
         return abbr
 
+    def get_short_name(self) :
+        return '%s. %s'%(self.genus_name[0], self.species_name)
+
     def __str__(self) :
         return '%s %s (%s)'%(self.genus_name, self.species_name, self.common_name)
 

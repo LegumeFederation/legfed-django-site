@@ -265,6 +265,7 @@ def index(request) :
             if organism is not None :
                 search_url += '&facet_organism.shortName=%s'%(organism)
             search_url += '&start=%d'%(s)
+            im_species = [ sp.get_short_name() for sp in im.species.all() ]
 
             rr = requests.get(search_url)
             jj = rr.json()
@@ -283,8 +284,14 @@ def index(request) :
                 if ni == 0 :
                     r['label1'] = r['type']
                 r['mine'] = im.name
+                # sequence information, if relevant
+                if 'organism.shortName' in ff :
+                    result_organism = ff['organism.shortName']
+                elif 'organism.name' in ff :
+                    organism_name = ff['organism.name'].split(' ')
+                    result_organism = '%s. %s'%(organism_name[0][0], organism_name[1])
                 # TODO: add length field for sequences
-                if r['type'] in sequence_categories :
+                if r['type'] in sequence_categories and (len(im_species) == 0 or (result_organism is not None and result_organism in im_species)) :
                     r['fasta_url'] = '%s/sequenceExporter.do?object=%d' % (base_url, result_id)
                     # r['fields']['length'] = getSequenceLength(r['fasta_url'])
                     r['blast_url'] = '%s/sequenceBlaster.do?object=%d' % (base_url, result_id)
