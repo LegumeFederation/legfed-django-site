@@ -346,7 +346,11 @@ def templates(request) :
         if not (selected_mines is None or im.name in selected_mines) :
             continue
         base_url = im.url.rstrip('/')
-        service = Service(base_url)
+        try :
+            service = Service(base_url)
+        except :
+            # service is inaccessible, or some other error
+            continue
         for t_name in service.templates :
             t = service.get_template(t_name)
             if t_name in existing_templates :
@@ -396,6 +400,7 @@ def template_constraints(request) :
     q_mine_name = qq[1]
     q_mine = mines_dict[q_mine_name]
     base_url = q_mine.url.rstrip('/')
+    # Note that q_service must exist if this template exists, so there is no need for a try/except here
     q_service = Service(base_url)
     selected_template = q_service.get_template(q_template)
     nc = len(selected_template.constraints) # number of constraints in selected_template
@@ -510,7 +515,11 @@ def template_constraints(request) :
         if not (mine is None or mine == im.name) :
             continue
         base_url = im.url.rstrip('/')
-        service = Service(base_url)
+        try :
+            service = Service(base_url)
+        except :
+            # service is inaccessible, or some other error
+            continue
         try :
             template = service.get_template(q_template)
             # Execute the (possibly modified) query
